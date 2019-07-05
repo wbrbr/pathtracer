@@ -6,7 +6,7 @@ class Camera
 {
 public:
 	Camera(vec3 position, vec3 target);
-	Ray getRay();
+	Ray getRay(int x, int y, int width, int height);
 
 private:
 	vec3 position;
