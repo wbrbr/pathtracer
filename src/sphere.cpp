@@ -1,8 +1,7 @@
 #include "sphere.hpp"
 #include <cmath>
 
-
-Sphere::Sphere(vec3 c, float r): c(c), r(r)
+Sphere::Sphere(vec3 c, float r, Material* material): c(c), r(r), material(material)
 {
 }
 
@@ -16,6 +15,7 @@ std::optional<IntersectionData> Sphere::intersects(Ray ray)
     float discriminant = b*b - 4*a*C;
     if (discriminant > 0) {
         IntersectionData inter;
+        inter.material = material;
         inter.t = (-b - sqrt(discriminant)) / (2.f * a);
         if (inter.t <= 0.f) {
             inter.t = (-b + sqrt(discriminant)) / (2.f * a);

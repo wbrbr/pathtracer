@@ -8,8 +8,7 @@
 #include "ray.hpp"
 #include "sphere.hpp"
 #include "world.hpp"
-
-std::mt19937 rng(2019);
+#include "util.hpp"
 
 void write_png(std::string path, int w, int h, vec3* pixels)
 {
@@ -24,31 +23,17 @@ void write_png(std::string path, int w, int h, vec3* pixels)
     stbi_write_png(path.c_str(), w, h, 3, data.data(), 0);
 }
 
-vec3 random_unit_sphere()
-{
-    std::uniform_real_distribution dist(-1.f, 1.f);
-    vec3 p;
-    do {
-        p.x = dist(rng);
-        p.y = dist(rng);
-        p.z = dist(rng);
-    } while (p.norm_squared() >= 1.f);
-    return p.normalized();
-}
-
-vec3 random_unit_hemisphere(vec3 n)
-{
-    vec3 p;
-    do {
-        p = random_unit_sphere();
-    } while (dot(p, n) <= 0.f);
-    return p;
-}
-
 vec3 color(World world, Ray ray)
 {
     auto inter = world.intersects(ray);
     if (inter) {
+        auto sc = inter->material->scatter(ray, *inter);
+        if (sc) {
+            vec3 c = color(world, sc->scattered);
+            return vec3(sc->attenuation.x * c.x, sc->attenuation.y * c.y, sc->attenuation.z * c.z);
+        } else {
+            return vec3(0.f, 0.f, 0.f);
+        }
         Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, random_unit_hemisphere(inter->normal));
         // Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, inter->normal);
         return 0.5f * color(world, new_ray);
@@ -62,14 +47,13 @@ vec3 color(World world, Ray ray)
 int main() {
 
     World world;
-    world.add(Sphere(vec3(0.f, 0.f, 0.f), 0.4f));
-    world.add(Sphere(vec3(0.f, -100.4f, 0.f), 100.f));
+    DiffuseMaterial mtl(vec3(0.5f, 0.5f, 0.5f));
+    world.add(Sphere(vec3(0.f, 0.f, 0.f), 0.4f, &mtl));
+    world.add(Sphere(vec3(0.f, -100.4f, 0.f), 100.f, &mtl));
     const int WIDTH = 500;
     const int HEIGHT = 500;
     const int SAMPLE_COUNT = 50;
     std::array<vec3, WIDTH*HEIGHT> pixels;
-    std::uniform_real_distribution dist_x(-0.5f / (float)WIDTH, 0.5f / (float)WIDTH);
-    std::uniform_real_distribution dist_y(-0.5f / (float)HEIGHT, 0.5f / (float)HEIGHT);
     for (int yi = 0; yi < HEIGHT; yi++)
     {
         float y =  -(((float)yi + 0.5f) * 2.f / (float)HEIGHT - 1.f);
@@ -80,14 +64,13 @@ int main() {
             vec3 c(0.f, 0.f, 0.f);
             for (int s = 0; s < SAMPLE_COUNT; s++)
             {
-                float u = x + dist_x(rng);
-                float v = y + dist_y(rng);
+                float u = x + random_between(-0.5f / (float)WIDTH, 0.5f / (float)WIDTH);
+                float v = y + random_between(-0.5f / (float)HEIGHT, 0.5F / (float)HEIGHT);
                 Ray ray = Ray::from_to(vec3(0.f, 0.f, 1.f), vec3(u, v, 0.f));
                 c += color(world, ray);
             }
             c /= (float)SAMPLE_COUNT;
             pixels[yi*WIDTH+xi] = c;
-            // TODO: gamma correction
         }
     }
     write_png("out.png", WIDTH, HEIGHT, pixels.data());
