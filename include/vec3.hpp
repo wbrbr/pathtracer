@@ -20,6 +20,8 @@ public:
 
 float dot(vec3 a, vec3 b);
 vec3 lerp(vec3 a, vec3 b, float t);
+vec3 reflect(vec3 v, vec3 n);
+vec3 cross(vec3 a, vec3 b);
 vec3 operator+(vec3 a, vec3 b);
 vec3 operator*(float t, vec3 v);
 vec3 operator-(vec3 a, vec3 b);

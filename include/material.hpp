@@ -21,23 +21,29 @@ struct ScatterData
 class Material
 {
 public:
-    virtual std::optional<ScatterData> scatter(Ray ray, IntersectionData inter) = 0;
+    virtual ScatterData scatter(Ray ray, IntersectionData inter) = 0;
 };
 
 class DiffuseMaterial: public Material
 {
 public:
-    vec3 albedo;
-    
     DiffuseMaterial(vec3 albedo);
     ScatterData scatter(Ray ray, IntersectionData inter);
+
+private:
+	vec3 albedo;
+
 };
 
-/* class MetalMaterial: public Material
+class MetalMaterial: public Material
 {
 public:
-    vec3 albedo;
-    
-    std::optional<ScatterData> scatter(Ray ray, IntersectionData inter);
-}; */
+	MetalMaterial(vec3 albedo, float roughness);
+	ScatterData scatter(Ray ray, IntersectionData inter);
+
+private:
+	vec3 albedo;
+	float roughness;
+};
+
 #endif

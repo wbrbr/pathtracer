@@ -52,6 +52,16 @@ float dot(vec3 a, vec3 b)
     return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
+vec3 reflect(vec3 v, vec3 n)
+{
+	return v - 2.f * dot(v, n) * n;
+}
+
+vec3 cross(vec3 a, vec3 b)
+{
+	return vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+}
+
 vec3 operator-(vec3 a, vec3 b)
 {
     return a + (-b);

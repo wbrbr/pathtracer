@@ -28,9 +28,9 @@ vec3 color(World world, Ray ray)
     auto inter = world.intersects(ray);
     if (inter) {
         auto sc = inter->material->scatter(ray, *inter);
-        if (sc) {
-            vec3 c = color(world, sc->scattered);
-            return vec3(sc->attenuation.x * c.x, sc->attenuation.y * c.y, sc->attenuation.z * c.z);
+        if (sc.scattered) {
+            vec3 c = color(world, *sc.scattered);
+            return vec3(sc.attenuation.x * c.x, sc.attenuation.y * c.y, sc.attenuation.z * c.z);
         } else {
             return vec3(0.f, 0.f, 0.f);
         }
@@ -45,15 +45,15 @@ vec3 color(World world, Ray ray)
 }
 
 int main() {
-
     World world;
-    DiffuseMaterial mtl(vec3(0.5f, 0.5f, 0.5f));
-    world.add(Sphere(vec3(0.f, 0.f, 0.f), 0.4f, &mtl));
-    world.add(Sphere(vec3(0.f, -100.4f, 0.f), 100.f, &mtl));
+    world.add(Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
+	world.add(Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, new MetalMaterial(vec3(0.8f, 0.6f, 0.2f), 1.f)));
+    world.add(Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
     const int WIDTH = 500;
     const int HEIGHT = 500;
     const int SAMPLE_COUNT = 50;
-    std::array<vec3, WIDTH*HEIGHT> pixels;
+    std::vector<vec3> pixels;
+	pixels.resize(WIDTH * HEIGHT);
     for (int yi = 0; yi < HEIGHT; yi++)
     {
         float y =  -(((float)yi + 0.5f) * 2.f / (float)HEIGHT - 1.f);
