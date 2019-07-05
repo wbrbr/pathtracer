@@ -1,16 +1,17 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
-#include "sphere.hpp"
+#include "shape.hpp"
 #include <vector>
 
-class World
+class World: public Shape
 {
 public:
     World();
-    void add(Sphere s);
+    void add(Shape* s);
     std::optional<IntersectionData> intersects(Ray ray);
 
 private:
-    std::vector<Sphere> spheres;
+	// TODO: use smart pointers instead ? (unique_ptr) or delete in destructor
+    std::vector<Shape*> shapes;
 };
 #endif

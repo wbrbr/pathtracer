@@ -2,15 +2,7 @@
 #define MATERIAL_HPP
 #include <optional>
 #include "ray.hpp"
-
-class Material;
-
-struct IntersectionData
-{
-    float t;
-    vec3 normal;
-    Material* material;
-};
+#include "shape.hpp"
 
 struct ScatterData
 {

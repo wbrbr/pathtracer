@@ -9,6 +9,8 @@
 #include "sphere.hpp"
 #include "world.hpp"
 #include "util.hpp"
+#include "trianglemesh.hpp"
+#include "camera.hpp"
 
 void write_png(std::string path, int w, int h, vec3* pixels)
 {
@@ -46,12 +48,14 @@ vec3 color(World world, Ray ray)
 
 int main() {
     World world;
-    world.add(Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
-	world.add(Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, new MetalMaterial(vec3(0.8f, 0.6f, 0.2f), 1.f)));
-    world.add(Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
+    //world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
+	//world.add(new Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, new MetalMaterial(vec3(0.8f, 0.6f, 0.2f), 1.f)));
+    //world.add(new Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
+	world.add(new TriangleMesh("cube.obj", new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
+	Camera cam(vec3(0.f, 1.f, 1.f), vec3(0.f, 0.f, 0.f));
     const int WIDTH = 500;
     const int HEIGHT = 500;
-    const int SAMPLE_COUNT = 50;
+    const int SAMPLE_COUNT = 10;
     std::vector<vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
     for (int yi = 0; yi < HEIGHT; yi++)
@@ -60,13 +64,13 @@ int main() {
         for (int xi = 0; xi < WIDTH; xi++)
         {
             float x = ((float)xi + 0.5f) * 2.f / (float)WIDTH - 1.f;
-
+			cam.setTarget()
             vec3 c(0.f, 0.f, 0.f);
             for (int s = 0; s < SAMPLE_COUNT; s++)
             {
                 float u = x + random_between(-0.5f / (float)WIDTH, 0.5f / (float)WIDTH);
                 float v = y + random_between(-0.5f / (float)HEIGHT, 0.5F / (float)HEIGHT);
-                Ray ray = Ray::from_to(vec3(0.f, 0.f, 1.f), vec3(u, v, 0.f));
+                Ray ray = Ray::from_to(cam, vec3(u, v, 0.f));
                 c += color(world, ray);
             }
             c /= (float)SAMPLE_COUNT;

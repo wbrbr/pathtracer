@@ -4,18 +4,18 @@ World::World()
 {
 }
 
-void World::add(Sphere s)
+void World::add(Shape* s)
 {
-    spheres.push_back(s);
+    shapes.push_back(s);
 }
 
 std::optional<IntersectionData> World::intersects(Ray ray)
 {
     std::vector<IntersectionData> inters;
 
-    for (Sphere s : spheres) 
+    for (Shape* s : shapes) 
     {
-        auto inter = s.intersects(ray);
+        auto inter = s->intersects(ray);
         if (inter) inters.push_back(*inter);
     }
 

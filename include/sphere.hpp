@@ -2,9 +2,10 @@
 #define SPHERE_HPP
 #include "ray.hpp"
 #include "material.hpp"
+#include "shape.hpp"
 #include <optional>
 
-class Sphere
+class Sphere: public Shape
 {
 public:
     vec3 c; // center
