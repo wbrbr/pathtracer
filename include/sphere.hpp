@@ -13,6 +13,7 @@ public:
     Material* material;
 
     Sphere(vec3 c, float r, Material* material);
+    Box boundingBox();
     std::optional<IntersectionData> intersects(Ray ray);
     vec3 normal(vec3 p);
 };

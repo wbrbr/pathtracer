@@ -15,6 +15,7 @@ public:
     vec3 normalized();
     void operator+=(vec3 o);
     void operator/=(float t);
+    float operator[](int i);
 };
 
 float dot(vec3 a, vec3 b);

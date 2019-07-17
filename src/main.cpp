@@ -29,6 +29,7 @@ vec3 color(World world, Ray ray)
 {
     auto inter = world.intersects(ray);
     if (inter) {
+        assert(inter->material != nullptr);
         auto sc = inter->material->scatter(ray, *inter);
         if (sc.scattered) {
             vec3 c = color(world, *sc.scattered);
@@ -44,11 +45,15 @@ vec3 color(World world, Ray ray)
 }
 
 int main() {
+    /* Box b(vec3(0.f, 0.f, 0.f), vec3(1.f, 1.f, 1.f));
+    Ray r(vec3(0.5f, 0.5f, -1.f), vec3(0.5f, 0.5f, 1.f));
+    std::cout << b.intersects(r) << std::endl;
+    return 0; */
     World world;
     // world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
 	// world.add(new Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, new MetalMaterial(vec3(0.8f, 0.6f, 0.2f), 1.f)));
     // world.add(new Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
-	world.add(new TriangleMesh("cube.obj", new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
+	world.add(new TriangleMesh("suzanne.obj", new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
 	Camera cam(vec3(0.f, 1.f, 1.f), vec3(0.f, 0.f, 0.f));
     const int WIDTH = 500;
     const int HEIGHT = 500;

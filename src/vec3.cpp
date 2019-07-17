@@ -47,6 +47,16 @@ vec3 operator*(float t, vec3 v)
     return vec3(t * v.x, t * v.y, t * v.z);
 }
 
+float vec3::operator[](int i)
+{
+    switch (i) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default: throw "Index out of range";
+    }
+}
+
 float dot(vec3 a, vec3 b)
 {
     return a.x*b.x + a.y*b.y + a.z*b.z;

@@ -32,3 +32,8 @@ vec3 Sphere::normal(vec3 p)
 {
     return (p - c).normalized();
 }
+
+Box Sphere::boundingBox()
+{
+    return Box(c - vec3(r, r, r), c + vec3(r, r, r));
+}

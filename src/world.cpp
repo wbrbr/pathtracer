@@ -1,4 +1,5 @@
 #include "world.hpp"
+#include <algorithm>
 
 World::World()
 {
@@ -30,3 +31,4 @@ std::optional<IntersectionData> World::intersects(Ray ray)
 
     return closest;
 }
+

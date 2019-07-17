@@ -1,9 +1,10 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
-#include "shape.hpp"
 #include <vector>
+#include "shape.hpp"
+#include "box.hpp"
 
-class World: public Shape
+class World
 {
 public:
     World();
