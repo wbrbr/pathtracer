@@ -50,10 +50,12 @@ int main() {
     std::cout << b.intersects(r) << std::endl;
     return 0; */
     World world;
+    DiffuseMaterial mat(vec3(0.8f, 0.8f, 0.f));
+    TriangleMesh tm("cube.obj", &mat);
     // world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
 	// world.add(new Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, new MetalMaterial(vec3(0.8f, 0.6f, 0.2f), 1.f)));
     // world.add(new Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
-	world.add(new TriangleMesh("suzanne.obj", new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
+	world.add(&tm);
 	Camera cam(vec3(0.f, 1.f, 1.f), vec3(0.f, 0.f, 0.f));
     const int WIDTH = 500;
     const int HEIGHT = 500;

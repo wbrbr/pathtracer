@@ -29,8 +29,10 @@ struct BVHNode
     // TODO: destructor
     // TODO: union (leaf / node)
     // TODO: triangles, not Shape*
-    //
+
+    ~BVHNode();
     std::optional<IntersectionData> intersects(Ray ray);
+    
 };
 
 class TriangleMesh: public Shape

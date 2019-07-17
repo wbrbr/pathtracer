@@ -4,6 +4,12 @@
 #include "tiny_obj_loader.h"
 #include <algorithm>
 
+BVHNode::~BVHNode()
+{
+    if (left != nullptr) delete left; 
+    if (right != nullptr) delete right;
+}
+
 std::optional<IntersectionData> BVHNode::intersects(Ray ray)
 {
     if (!box.intersects(ray)) return {};
