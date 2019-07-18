@@ -12,7 +12,9 @@ BVHNode::~BVHNode()
 
 std::optional<IntersectionData> BVHNode::intersects(Ray ray)
 {
-    if (!box.intersects(ray)) return {};
+    if (!box.intersects(ray)) {
+        return {};
+    }
     if (left == nullptr) {
         IntersectionData closest;
         closest.t = INFINITY;
@@ -26,8 +28,16 @@ std::optional<IntersectionData> BVHNode::intersects(Ray ray)
 
         return closest.t == INFINITY ? std::optional<IntersectionData>{} : closest;
     } else {
-        auto inter = left->intersects(ray);
-        if (inter) return inter;
+        assert(right != nullptr);
+        auto interLeft = left->intersects(ray);
+        if (interLeft) {
+            auto interRight = right->intersects(ray);
+            if (interRight) {
+                return interRight->t < interLeft->t ? interRight : interLeft;
+            } else {
+                return interLeft;
+            }
+        }
         else return right->intersects(ray);
     }
 }
@@ -125,7 +135,7 @@ Box Triangle::boundingBox()
 std::optional<IntersectionData> Triangle::intersects(Ray ray)
 {
 	const float EPSILON = 0.0000001;
-	vec3 vertex0 = tm->getVertex(i0);;
+	vec3 vertex0 = tm->getVertex(i0);
 	vec3 vertex1 = tm->getVertex(i1);
 	vec3 vertex2 = tm->getVertex(i2);
 	vec3 edge1, edge2, h, s, q;
@@ -151,7 +161,7 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 	{
 		IntersectionData inter;
 		inter.t = t;
-		inter.normal = cross(edge1, edge2); // TODO: cache triangle normal
+		inter.normal = cross(edge1, edge2).normalized(); // TODO: cache triangle normal
         inter.material = tm->getMaterial();
 		return inter;
 	}
