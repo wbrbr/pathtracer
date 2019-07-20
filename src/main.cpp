@@ -13,6 +13,7 @@
 #include "util.hpp"
 #include "trianglemesh.hpp"
 #include "camera.hpp"
+#include "pdf.hpp"
 
 // WARN: must divide the number of rows in the output image
 #define NUM_THREADS 10
@@ -35,15 +36,14 @@ vec3 color(World world, Ray ray)
     auto inter = world.intersects(ray);
     if (inter) {
         assert(inter->material != nullptr);
-        auto sc = inter->material->scatter(ray, *inter);
-        if (sc.scattered) {
-            vec3 c = color(world, *sc.scattered);
-            return vec3(sc.attenuation.x * c.x, sc.attenuation.y * c.y, sc.attenuation.z * c.z);
-        } else {
-            return vec3(0.f, 0.f, 0.f);
-        }
-        Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, random_unit_hemisphere(inter->normal));
-        return 0.5f * color(world, new_ray);
+        PDF* pdf = inter->material->getPDF(inter->normal);
+        vec3 new_dir = pdf->sample();
+        Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
+        vec3 c = color(world, new_ray);
+        vec3 att = inter->material->eval(-ray.d, new_dir);
+        float p = pdf->value(new_dir);
+        delete pdf;
+        return dot(new_dir, inter->normal) * vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
     } else {
         return lerp(vec3(1.f, 1.f, 1.f), vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
     }
@@ -77,7 +77,7 @@ int main() {
     return 0; */
     World world;
     DiffuseMaterial mat(vec3(0.8f, 0.8f, 0.f));
-    TriangleMesh tm("suzanne.obj", &mat);
+    TriangleMesh tm("cube.obj", &mat);
     // world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
 	// world.add(new Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, new MetalMaterial(vec3(0.8f, 0.6f, 0.2f), 1.f)));
     // world.add(new Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
