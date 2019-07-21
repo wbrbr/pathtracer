@@ -13,6 +13,7 @@ public:
     float norm();
     float norm_squared();
     vec3 normalized();
+    bool isNormalized();
     void operator+=(vec3 o);
     void operator/=(float t);
     float operator[](int i);

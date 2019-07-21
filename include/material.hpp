@@ -16,7 +16,7 @@ class Material
 public:
     // virtual ScatterData scatter(Ray ray, IntersectionData inter) = 0;
     virtual PDF* getPDF(vec3 n) = 0;
-    virtual vec3 eval(vec3 wi, vec3 wo) = 0;
+    virtual vec3 eval(vec3 wi, vec3 wo, vec3 n) = 0;
 };
 
 class DiffuseMaterial: public Material
@@ -24,21 +24,22 @@ class DiffuseMaterial: public Material
 public:
     DiffuseMaterial(vec3 albedo);
     PDF* getPDF(vec3 n);
-    vec3 eval(vec3 wi, vec3 wo);
+    vec3 eval(vec3 wi, vec3 wo, vec3 n);
 
 private:
 	vec3 albedo;
 };
 
-/* class MetalMaterial: public Material
+class MetalMaterial: public Material
 {
 public:
-	MetalMaterial(vec3 albedo, float roughness);
-	ScatterData scatter(Ray ray, IntersectionData inter);
+    MetalMaterial(vec3 albedo, float alpha);
+    PDF* getPDF(vec3 n);
+    vec3 eval(vec3 wi, vec3 wo, vec3 n);
 
 private:
 	vec3 albedo;
-	float roughness;
-}; */
+    float alpha;
+};
 
 #endif

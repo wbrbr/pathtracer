@@ -40,7 +40,7 @@ vec3 color(World world, Ray ray)
         vec3 new_dir = pdf->sample();
         Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
         vec3 c = color(world, new_ray);
-        vec3 att = inter->material->eval(-ray.d, new_dir);
+        vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
         float p = pdf->value(new_dir);
         delete pdf;
         return dot(new_dir, inter->normal) * vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
@@ -77,15 +77,16 @@ int main() {
     return 0; */
     World world;
     DiffuseMaterial mat(vec3(0.8f, 0.8f, 0.f));
-    TriangleMesh tm("cube.obj", &mat);
-    // world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
-	// world.add(new Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, new MetalMaterial(vec3(0.8f, 0.6f, 0.2f), 1.f)));
-    // world.add(new Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
-	world.add(&tm);
+    MetalMaterial met(vec3(0.9f, 0.9f, 0.9f), 0.05f);
+    // TriangleMesh tm("cube.obj", &mat);
+	// world.add(&tm);
+    world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
+	world.add(new Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, &met));
+    world.add(new Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
 	Camera cam(vec3(0.f, 1.f, 1.f), vec3(0.f, 0.f, 0.f));
     const int WIDTH = 500;
     const int HEIGHT = 500;
-    const int SAMPLE_COUNT = 10;
+    const int SAMPLE_COUNT = 100;
     std::vector<vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
     std::mutex pixels_mutex;

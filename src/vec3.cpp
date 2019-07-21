@@ -57,6 +57,11 @@ float vec3::operator[](int i)
     }
 }
 
+bool vec3::isNormalized()
+{
+    return abs(norm_squared() - 1.f) < 0.01f;
+}
+
 float dot(vec3 a, vec3 b)
 {
     return a.x*b.x + a.y*b.y + a.z*b.z;
