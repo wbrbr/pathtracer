@@ -1,7 +1,8 @@
 #include "util.hpp"
 #include <random>
 
-std::mt19937 rng(2019);
+// no idea
+thread_local std::mt19937 rng(2019);
 
 vec3 random_unit_sphere()
 {

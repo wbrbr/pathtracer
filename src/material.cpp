@@ -1,5 +1,6 @@
 #include "material.hpp"
 #include "util.hpp"
+#include "plot.hpp"
 #include <cmath>
 #include <cassert>
 
@@ -35,32 +36,32 @@ float GGXF(vec3 wi, vec3 hr)
 }
 
 // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
-float GGXD(vec3 m, vec3 n, float alpha) 
+float GGXD(vec3 hr, vec3 n, float alpha) 
 {
-    float cosTheta = dot(m, n);
-    float tanTheta = (1.f - cosTheta*cosTheta) / cosTheta;
-    float fac = (alpha * alpha + tanTheta * tanTheta);
-    float res;
-    if (cosTheta < 0) res = 0.f;
-    else res = alpha * alpha * M_1_PI / (cosTheta * cosTheta * cosTheta * cosTheta * fac * fac);
-    // assert(res >= 0.f);
-    // assert(res <= 1.f);
-    // assert(res * cosTheta <= 1.f);
-    return res;
+    float ndoth = dot(n, hr);
+    if (ndoth < 0.f) return 0.f;
+
+    float a2 = alpha*alpha;
+    float denum = ndoth * ndoth * (a2 - 1.f) + 1.f;
+    return a2 / (M_PI * denum * denum);
 }
 
-float GGXG(vec3 v, vec3 m, vec3 n, float alpha)
+float G1(vec3 n, vec3 v, float alpha)
 {
     assert(v.isNormalized());
-    assert(m.isNormalized());
     assert(n.isNormalized());
-    float tanT = cross(v, n).norm() / dot(v, n);
-    float res;
-    if (dot(v, m) / dot(v, n) < 0.f) res = 0.f;
-    else res = 2.f / (1.f + sqrt(1.f + alpha * alpha * tanT * tanT));
-    assert(res >= 0.f);
-    assert(res <= 1.f);
-    return res;
+    float ndotv = dot(n, v);
+
+    float num = 2.f * ndotv;
+    float a2 = alpha * alpha;
+
+    float denum = ndotv + sqrt(a2 + (1.f - a2) * ndotv * ndotv);
+    return num / denum;
+}
+
+float GGXG(vec3 v, vec3 l, vec3 n, float alpha)
+{
+    return G1(n, v, alpha) * G1(n, l, alpha);
 }
 
 vec3 MetalMaterial::eval(vec3 wi, vec3 wo, vec3 n)
@@ -68,9 +69,14 @@ vec3 MetalMaterial::eval(vec3 wi, vec3 wo, vec3 n)
     // maybe need to use sign()...
     vec3 hr = (wi + wo).normalized();
 
-    // return GGXF(wi, hr) * GGXG(wi, hr, n, alpha) * GGXG(wo, hr, n, alpha) * GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
+    // return GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
+    return GGXF(wi, hr) * GGXG(wi, wo, n, alpha) * GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
     // return GGXD(wo, hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
-    return GGXD(hr, n, alpha) * albedo;
+    /* #pragma once
+    plot("ggxd.data", [](float t){ return GGXD(t, 0.04); }, 0.f, 0.2f, 0.001f); */
+
+    //return GGXD(dot(n, hr), alpha) * albedo;
+    //return dot(n, hr) * albedo;
 }
 
 /* ScatterData DiffuseMaterial::scatter(Ray ray, IntersectionData inter)

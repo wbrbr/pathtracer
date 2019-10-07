@@ -1,4 +1,3 @@
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 #include <iostream>
 #include <string>
@@ -24,14 +23,15 @@ void write_png(std::string path, int w, int h, vec3* pixels)
     data.reserve(3*w*h);
     for (int i = 0; i < w*h; i++)
     {
-        data.push_back((unsigned char)(pow(pixels[i].x, 0.4545)*255.99f));
-        data.push_back((unsigned char)(pow(pixels[i].y, 0.4545)*255.99f));
-        data.push_back((unsigned char)(pow(pixels[i].z, 0.4545)*255.99f));
+        vec3 clamped(fmin(pixels[i].x, 1.f), fmin(pixels[i].y, 1.f), fmin(pixels[i].z, 1.f));
+        data.push_back((unsigned char)(pow(clamped.x, 0.4545)*255.99f));
+        data.push_back((unsigned char)(pow(clamped.y, 0.4545)*255.99f));
+        data.push_back((unsigned char)(pow(clamped.z, 0.4545)*255.99f));
     }
     stbi_write_png(path.c_str(), w, h, 3, data.data(), 0);
 }
 
-vec3 color(World world, Ray ray)
+/* vec3 color(World world, Ray ray)
 {
     auto inter = world.intersects(ray);
     if (inter) {
@@ -47,6 +47,22 @@ vec3 color(World world, Ray ray)
     } else {
         return lerp(vec3(1.f, 1.f, 1.f), vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
     }
+} */
+
+vec3 color(World world, Ray ray)
+{
+    auto inter = world.intersects(ray);
+    if (inter) {
+        assert(inter->material != nullptr);
+        PDF* pdf = inter->material->getPDF(inter->normal);
+        // vec3 new_dir = pdf->sample();
+        vec3 new_dir(0.f, 0.f, 1.f);
+        vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
+        delete pdf;
+        return att;
+    } else {
+        return lerp(vec3(1.f, 1.f, 1.f), vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
+    }
 }
 
 void trace_rays(int i, int width, int height, int sample_count, std::vector<vec3>& pixels, std::mutex& mut, World world, Camera cam)
@@ -56,6 +72,8 @@ void trace_rays(int i, int width, int height, int sample_count, std::vector<vec3
     {
         for (int xi = 0; xi < width; xi++)
         {
+            char msg[10];
+            snprintf(msg, 10, "%d", yi*width+xi);
             vec3 c(0.f, 0.f, 0.f);
             for (int s = 0; s < sample_count; s++)
             {
@@ -77,16 +95,17 @@ int main() {
     return 0; */
     World world;
     DiffuseMaterial mat(vec3(0.8f, 0.8f, 0.f));
-    MetalMaterial met(vec3(0.9f, 0.9f, 0.9f), 0.05f);
+    // MetalMaterial met(vec3(0.9f, 0.9f, 0.9f), 0.05f);
+    MetalMaterial met(vec3(1.f, 1.f, 1.f), 0.1f);
     // TriangleMesh tm("cube.obj", &mat);
 	// world.add(&tm);
     world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));
 	world.add(new Sphere(vec3(0.8f, 0.f, 0.f), 0.4f, &met));
     world.add(new Sphere(vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(vec3(0.8f, 0.8f, 0.f))));
-	Camera cam(vec3(0.f, 1.f, 1.f), vec3(0.f, 0.f, 0.f));
+	Camera cam(vec3(0.5f, 1.f, 1.f), vec3(0.f, 0.f, 0.f));
     const int WIDTH = 500;
     const int HEIGHT = 500;
-    const int SAMPLE_COUNT = 100;
+    const int SAMPLE_COUNT = 500;
     std::vector<vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
     std::mutex pixels_mutex;
