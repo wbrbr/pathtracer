@@ -33,7 +33,7 @@ vec3 random_unit_disk()
 	do {
 		p.x = dist(rng);
 		p.y = dist(rng);
-	} while (p.norm_squared() > 1.f);
+	} while (p.norm() >= 0.999f);
 	return p;
 }
 
