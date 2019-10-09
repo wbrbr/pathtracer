@@ -16,7 +16,7 @@
 #include "camera.hpp"
 #include "pdf.hpp"
 
-//#include <fenv.h>
+#include <fenv.h>
 
 // WARN: must divide the number of rows in the output image
 #define NUM_THREADS 10
@@ -58,21 +58,21 @@ vec3 color(World world, Ray ray, int bounces)
     }
 }
 
-/*vec3 color(World world, Ray ray)
+/* vec3 color(World world, Ray ray, int bounces)
 {
     auto inter = world.intersects(ray);
     if (inter) {
         assert(inter->material != nullptr);
         PDF* pdf = inter->material->getPDF(inter->normal);
-        // vec3 new_dir = pdf->sample();
-        vec3 new_dir(0.f, 0.f, 1.f);
+        vec3 new_dir = pdf->sample();
+        // vec3 new_dir(0.f, 0.f, 1.f);
         vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
         delete pdf;
         return att;
     } else {
         return lerp(vec3(1.f, 1.f, 1.f), vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
     }
-}*/
+} */
 
 void trace_rays(int i, int width, int height, int sample_count, std::vector<vec3>& pixels, std::mutex& mut, World world, Camera cam)
 {
@@ -102,11 +102,11 @@ int main() {
     Ray r(vec3(0.5f, 0.5f, -1.f), vec3(0.5f, 0.5f, 1.f));
     std::cout << b.intersects(r) << std::endl;
     return 0; */
-    //feenableexcept(FE_INVALID | FE_OVERFLOW);
+    feenableexcept(FE_INVALID | FE_OVERFLOW);
     World world;
     DiffuseMaterial mat(vec3(0.8f, 0.8f, 0.f));
     // MetalMaterial met(vec3(0.9f, 0.9f, 0.9f), 0.05f);
-    MetalMaterial met(vec3(1.f, 1.f, 1.f), 0.1f);
+    MetalMaterial met(vec3(1.f, 1.f, 1.f), 0.5f);
     // TriangleMesh tm("cube.obj", &mat);
 	// world.add(&tm);
     world.add(new Sphere(vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(vec3(0.8f, 0.3f, 0.3f))));

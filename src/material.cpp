@@ -10,7 +10,8 @@ DiffuseMaterial::DiffuseMaterial(vec3 albedo): albedo(albedo)
 
 PDF* DiffuseMaterial::getPDF(vec3 n)
 {
-    return new CosineHemispherePDF(n);
+    // return new CosineHemispherePDF(n);
+    return new UniformHemispherePDF(n);
 }
 
 // Color
@@ -25,7 +26,8 @@ MetalMaterial::MetalMaterial(vec3 albedo, float alpha): albedo(albedo), alpha(al
 
 PDF* MetalMaterial::getPDF(vec3 n)
 {
-    return new CosineHemispherePDF(n);
+    //return new CosineHemispherePDF(n);
+    return new UniformHemispherePDF(n);
 }
 
 float GGXF(vec3 wi, vec3 hr)
@@ -69,6 +71,7 @@ vec3 MetalMaterial::eval(vec3 wi, vec3 wo, vec3 n)
     // maybe need to use sign()...
     vec3 hr = (wi + wo).normalized();
 
+    return GGXD(hr, n, alpha) * albedo;
     // return GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
     return GGXF(wi, hr) * GGXG(wi, wo, n, alpha) * GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
     // return GGXD(wo, hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
