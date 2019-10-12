@@ -1,16 +1,16 @@
 #include "ray.hpp"
 
-Ray::Ray(vec3 o, vec3 d): o(o), d(d.normalized())
+Ray::Ray(glm::vec3 o, glm::vec3 d): o(o), d(glm::normalize(d))
 {
 }
 
-vec3 Ray::at(float t)
+glm::vec3 Ray::at(float t)
 {
     return o + t*d;
 }
 
-Ray Ray::from_to(vec3 o, vec3 target)
+Ray Ray::from_to(glm::vec3 o, glm::vec3 target)
 {
-    vec3 direction = target - o;
+    glm::vec3 direction = target - o;
     return Ray(o, direction);
 }

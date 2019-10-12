@@ -4,43 +4,48 @@
 #include <cmath>
 #include <cassert>
 
-DiffuseMaterial::DiffuseMaterial(vec3 albedo): albedo(albedo)
+glm::vec3 Material::emitted()
+{
+    return glm::vec3(0.f, 0.f, 0.f);
+}
+
+DiffuseMaterial::DiffuseMaterial(glm::vec3 albedo): albedo(albedo)
 {
 }
 
-PDF* DiffuseMaterial::getPDF(vec3 n)
+PDF* DiffuseMaterial::getPDF(glm::vec3 n)
+{
+    return new CosineHemispherePDF(n);
+    // return new UniformHemispherePDF(n);
+}
+
+// Color
+glm::vec3 DiffuseMaterial::eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n)
+{
+    return (float)M_1_PI * albedo;
+}
+
+MetalMaterial::MetalMaterial(glm::vec3 albedo, float alpha): albedo(albedo), alpha(alpha)
+{
+}
+
+PDF* MetalMaterial::getPDF(glm::vec3 n)
 {
     // return new CosineHemispherePDF(n);
     return new UniformHemispherePDF(n);
 }
 
-// Color
-vec3 DiffuseMaterial::eval(vec3 wi, vec3 wo, vec3 n)
-{
-    return M_1_PI * albedo;
-}
-
-MetalMaterial::MetalMaterial(vec3 albedo, float alpha): albedo(albedo), alpha(alpha)
-{
-}
-
-PDF* MetalMaterial::getPDF(vec3 n)
-{
-    //return new CosineHemispherePDF(n);
-    return new UniformHemispherePDF(n);
-}
-
-float GGXF(vec3 wi, vec3 hr)
+float GGXF(glm::vec3 wi, glm::vec3 hr)
 {
     const float F0 = 0.04;
-    float x = 1.f - dot(hr, wi);
+    float x = 1.f - glm::dot(hr, wi);
     return F0 + (1.f - F0) * x * x * x * x * x;
 }
 
 // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
-float GGXD(vec3 hr, vec3 n, float alpha) 
+float GGXD(glm::vec3 hr, glm::vec3 n, float alpha) 
 {
-    float ndoth = dot(n, hr);
+    float ndoth = glm::dot(n, hr);
     if (ndoth < 0.f) return 0.f;
 
     float a2 = alpha*alpha;
@@ -48,10 +53,10 @@ float GGXD(vec3 hr, vec3 n, float alpha)
     return a2 / (M_PI * denum * denum);
 }
 
-float G1(vec3 n, vec3 v, float alpha)
+float G1(glm::vec3 n, glm::vec3 v, float alpha)
 {
-    assert(v.isNormalized());
-    assert(n.isNormalized());
+    /* assert(v.isNormalized());
+    assert(n.isNormalized()); */
     float ndotv = dot(n, v);
 
     float num = 2.f * ndotv;
@@ -61,17 +66,17 @@ float G1(vec3 n, vec3 v, float alpha)
     return num / denum;
 }
 
-float GGXG(vec3 v, vec3 l, vec3 n, float alpha)
+float GGXG(glm::vec3 v, glm::vec3 l, glm::vec3 n, float alpha)
 {
     return G1(n, v, alpha) * G1(n, l, alpha);
 }
 
-vec3 MetalMaterial::eval(vec3 wi, vec3 wo, vec3 n)
+glm::vec3 MetalMaterial::eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n)
 {
     // maybe need to use sign()...
-    vec3 hr = (wi + wo).normalized();
+    glm::vec3 hr = glm::normalize(wi + wo);
 
-    return GGXD(hr, n, alpha) * albedo;
+    //return GGXD(hr, n, alpha) * albedo;
     // return GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
     return GGXF(wi, hr) * GGXG(wi, wo, n, alpha) * GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
     // return GGXD(wo, hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
@@ -82,27 +87,22 @@ vec3 MetalMaterial::eval(vec3 wi, vec3 wo, vec3 n)
     //return dot(n, hr) * albedo;
 }
 
-/* ScatterData DiffuseMaterial::scatter(Ray ray, IntersectionData inter)
+EmissionMaterial::EmissionMaterial(glm::vec3 emission)
 {
-    ScatterData sc;
-    sc.attenuation = albedo;
-    Ray new_ray(ray.at(inter.t) + 0.001f * inter.normal, random_unit_hemisphere(inter.normal));
-    sc.scattered = new_ray;
-    return sc;
-} */
-
-/* MetalMaterial::MetalMaterial(vec3 albedo, float roughness) : albedo(albedo), roughness(roughness)
-{
+    this->emission = emission;
 }
 
-ScatterData MetalMaterial::scatter(Ray ray, IntersectionData inter)
+PDF* EmissionMaterial::getPDF(glm::vec3 n)
 {
-	vec3 reflected = reflect(ray.d, inter.normal);
-	vec3 rand_disk = random_unit_disk();
-	std::pair<vec3, vec3> basis = plane_onb_from_normal(inter.normal);
-	vec3 offset = roughness * (rand_disk.x * basis.first + rand_disk.y * basis.second);
-	ScatterData sc;
-	sc.scattered = Ray(ray.at(inter.t) + 0.001f * inter.normal, reflected + offset);
-	sc.attenuation = albedo;
-	return sc;
-} */
+    return nullptr;
+}
+
+glm::vec3 EmissionMaterial::eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n)
+{
+    return glm::vec3(0.f, 0.f, 0.f);
+}
+
+glm::vec3 EmissionMaterial::emitted()
+{
+    return emission;
+}

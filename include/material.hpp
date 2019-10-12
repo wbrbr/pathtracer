@@ -7,7 +7,7 @@
 
 struct ScatterData
 {
-    vec3 attenuation;
+    glm::vec3 attenuation;
     std::optional<Ray> scattered;
 };
 
@@ -15,31 +15,44 @@ class Material
 {
 public:
     // virtual ScatterData scatter(Ray ray, IntersectionData inter) = 0;
-    virtual PDF* getPDF(vec3 n) = 0;
-    virtual vec3 eval(vec3 wi, vec3 wo, vec3 n) = 0;
+    virtual PDF* getPDF(glm::vec3 n) = 0;
+    virtual glm::vec3 eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n) = 0;
+    virtual glm::vec3 emitted();
 };
 
 class DiffuseMaterial: public Material
 {
 public:
-    DiffuseMaterial(vec3 albedo);
-    PDF* getPDF(vec3 n);
-    vec3 eval(vec3 wi, vec3 wo, vec3 n);
+    DiffuseMaterial(glm::vec3 albedo);
+    PDF* getPDF(glm::vec3 n);
+    glm::vec3 eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n);
 
 private:
-	vec3 albedo;
+	glm::vec3 albedo;
 };
 
 class MetalMaterial: public Material
 {
 public:
-    MetalMaterial(vec3 albedo, float alpha);
-    PDF* getPDF(vec3 n);
-    vec3 eval(vec3 wi, vec3 wo, vec3 n);
+    MetalMaterial(glm::vec3 albedo, float alpha);
+    PDF* getPDF(glm::vec3 n);
+    glm::vec3 eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n);
 
 private:
-	vec3 albedo;
+	glm::vec3 albedo;
     float alpha;
+};
+
+class EmissionMaterial: public Material
+{
+public:
+    EmissionMaterial(glm::vec3 emission);
+    PDF* getPDF(glm::vec3 n);
+    glm::vec3 eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n);
+    glm::vec3 emitted();
+
+private:
+    glm::vec3 emission;
 };
 
 #endif

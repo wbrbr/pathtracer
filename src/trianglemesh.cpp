@@ -2,6 +2,7 @@
 #include <cassert>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
+#include <iostream>
 #include <algorithm>
 
 BVHNode::~BVHNode()
@@ -59,7 +60,7 @@ bool compareZ(Triangle s1, Triangle s2)
 
 std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHNode* node)
 {
-    vec3 sides = node->box.getMax() - node->box.getMin();
+    glm::vec3 sides = node->box.getMax() - node->box.getMin();
     
     if (sides.x >= sides.y && sides.x >= sides.z) {
         std::sort(node->triangles.begin(), node->triangles.end(), compareX);
@@ -122,12 +123,12 @@ inline float fmax(float a, float b, float c)
 
 Box Triangle::boundingBox()
 {
-    vec3 v0 = tm->getVertex(i0);
-    vec3 v1 = tm->getVertex(i1);
-    vec3 v2 = tm->getVertex(i2);
+    glm::vec3 v0 = tm->getVertex(i0);
+    glm::vec3 v1 = tm->getVertex(i1);
+    glm::vec3 v2 = tm->getVertex(i2);
 
-    vec3 min(fmin(v0.x, v1.x, v2.x), fmin(v0.y, v1.y, v2.y), fmin(v0.z, v1.z, v2.z));
-    vec3 max(fmax(v0.x, v1.x, v2.x), fmax(v0.y, v1.y, v2.y), fmax(v0.z, v1.z, v2.z));
+    glm::vec3 min(fmin(v0.x, v1.x, v2.x), fmin(v0.y, v1.y, v2.y), fmin(v0.z, v1.z, v2.z));
+    glm::vec3 max(fmax(v0.x, v1.x, v2.x), fmax(v0.y, v1.y, v2.y), fmax(v0.z, v1.z, v2.z));
 
     return Box(min, max);
 }
@@ -135,10 +136,10 @@ Box Triangle::boundingBox()
 std::optional<IntersectionData> Triangle::intersects(Ray ray)
 {
 	const float EPSILON = 0.0000001;
-	vec3 vertex0 = tm->getVertex(i0);
-	vec3 vertex1 = tm->getVertex(i1);
-	vec3 vertex2 = tm->getVertex(i2);
-	vec3 edge1, edge2, h, s, q;
+	glm::vec3 vertex0 = tm->getVertex(i0);
+	glm::vec3 vertex1 = tm->getVertex(i1);
+	glm::vec3 vertex2 = tm->getVertex(i2);
+	glm::vec3 edge1, edge2, h, s, q;
 	float a, f, u, v;
 	edge1 = vertex1 - vertex0;
 	edge2 = vertex2 - vertex0;
@@ -161,7 +162,7 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 	{
 		IntersectionData inter;
 		inter.t = t;
-		inter.normal = cross(edge1, edge2).normalized(); // TODO: cache triangle normal
+		inter.normal = glm::normalize(glm::cross(edge1, edge2)); // TODO: cache triangle normal
         inter.material = tm->getMaterial();
 		return inter;
 	}
@@ -171,10 +172,10 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 
 TriangleMesh::TriangleMesh(std::string path, Material* material): material(material)
 {
-	/* vertices.push_back(vec3(-0.5f, -0.5f, 0.5f));
-	vertices.push_back(vec3(0.5f, -0.5f, 0.5f));
-	vertices.push_back(vec3(-0.5f, 0.5f, 0.5f));
-	vertices.push_back(vec3(0.5f, 0.5f, 0.5f));
+	/* vertices.push_back(glm::vec3(-0.5f, -0.5f, 0.5f));
+	vertices.push_back(glm::vec3(0.5f, -0.5f, 0.5f));
+	vertices.push_back(glm::vec3(-0.5f, 0.5f, 0.5f));
+	vertices.push_back(glm::vec3(0.5f, 0.5f, 0.5f));
 	Triangle t1(this, 0, 1, 2);
 	Triangle t2(this, 2, 1, 3);
 	triangles.push_back(t1);
@@ -193,7 +194,7 @@ TriangleMesh::TriangleMesh(std::string path, Material* material): material(mater
 
 	for (unsigned int i = 0; i < attrib.vertices.size() / 3; i++)
 	{
-		vertices.push_back(vec3(attrib.vertices[3 * i], attrib.vertices[3 * i + 1], attrib.vertices[3 * i + 2]));
+		vertices.push_back(glm::vec3(attrib.vertices[3 * i], attrib.vertices[3 * i + 1], attrib.vertices[3 * i + 2]));
 	}
 
 	assert(shapes.size() > 0);
@@ -227,7 +228,7 @@ std::optional<IntersectionData> TriangleMesh::intersects(Ray ray)
     return root.intersects(ray);
 }
 
-vec3 TriangleMesh::getVertex(int i)
+glm::vec3 TriangleMesh::getVertex(int i)
 {
 	assert((unsigned int)i < vertices.size());
 	return vertices.at(i);

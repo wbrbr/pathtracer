@@ -3,8 +3,8 @@
 #include <optional>
 #include <vector>
 #include "shape.hpp"
-#include "vec3.hpp"
 #include "ray.hpp"
+#include "glm/vec3.hpp"
 
 class TriangleMesh;
 
@@ -40,13 +40,13 @@ class TriangleMesh: public Shape
 public:
 	TriangleMesh(std::string path, Material* material);
 	std::optional<IntersectionData> intersects(Ray ray);
-	vec3 getVertex(int i);
+	glm::vec3 getVertex(int i);
     Material* getMaterial();
 
 private:
 	Material* material;
 	std::vector<Triangle> triangles;
-	std::vector<vec3> vertices;
+	std::vector<glm::vec3> vertices;
     BVHNode root;
 };
 #endif

@@ -5,11 +5,11 @@
 class Camera
 {
 public:
-	Camera(vec3 position, vec3 target);
+	Camera(glm::vec3 position, glm::vec3 target);
 	Ray getRay(int x, int y, int width, int height);
 
 private:
-	vec3 position;
-	vec3 direction;
+	glm::vec3 position;
+	glm::vec3 direction;
 };
 #endif

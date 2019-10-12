@@ -31,4 +31,3 @@ std::optional<IntersectionData> World::intersects(Ray ray)
 
     return closest;
 }
-

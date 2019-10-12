@@ -8,13 +8,13 @@
 class Sphere: public Shape
 {
 public:
-    vec3 c; // center
+    glm::vec3 c; // center
     float r; // radius
     Material* material;
 
-    Sphere(vec3 c, float r, Material* material);
+    Sphere(glm::vec3 c, float r, Material* material);
     Box boundingBox();
     std::optional<IntersectionData> intersects(Ray ray);
-    vec3 normal(vec3 p);
+    glm::vec3 normal(glm::vec3 p);
 };
 #endif

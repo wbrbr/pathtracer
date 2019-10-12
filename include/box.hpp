@@ -1,20 +1,19 @@
 #ifndef BOX_HPP
 #define BOX_HPP
-#include "vec3.hpp"
 #include "ray.hpp"
 
 class Box
 {
 public:
     Box();
-    Box(vec3 min, vec3 max);
-    vec3 getMin();
-    vec3 getMax();
-    vec3 getCenter();
+    Box(glm::vec3 min, glm::vec3 max);
+    glm::vec3 getMin();
+    glm::vec3 getMax();
+    glm::vec3 getCenter();
     Box add(Box box);
     bool intersects(Ray ray);
 
 private:
-    vec3 min, max, center;
+    glm::vec3 min, max, center;
 };
 #endif

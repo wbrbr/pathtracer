@@ -1,13 +1,13 @@
 #include "sphere.hpp"
 #include <cmath>
 
-Sphere::Sphere(vec3 c, float r, Material* material): c(c), r(r), material(material)
+Sphere::Sphere(glm::vec3 c, float r, Material* material): c(c), r(r), material(material)
 {
 }
 
 std::optional<IntersectionData> Sphere::intersects(Ray ray)
 {
-    vec3 oc = ray.o - c;
+    glm::vec3 oc = ray.o - c;
     float a = dot(ray.d, ray.d);
     float b = 2.f * dot(oc, ray.d);
     float C = dot(oc, oc) - r*r;
@@ -28,12 +28,12 @@ std::optional<IntersectionData> Sphere::intersects(Ray ray)
     }
 }
 
-vec3 Sphere::normal(vec3 p)
+glm::vec3 Sphere::normal(glm::vec3 p)
 {
-    return (p - c).normalized();
+    return glm::normalize(p - c);
 }
 
 Box Sphere::boundingBox()
 {
-    return Box(c - vec3(r, r, r), c + vec3(r, r, r));
+    return Box(c - glm::vec3(r, r, r), c + glm::vec3(r, r, r));
 }

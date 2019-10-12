@@ -1,34 +1,34 @@
 #include "box.hpp"
 #include <cmath>
 
-Box::Box(): min(vec3(0.f, 0.f, 0.f)), max(vec3(0.f, 0.f, 0.f))
+Box::Box(): min(glm::vec3(0.f, 0.f, 0.f)), max(glm::vec3(0.f, 0.f, 0.f))
 {
 }
 
-Box::Box(vec3 min, vec3 max): min(min), max(max)
+Box::Box(glm::vec3 min, glm::vec3 max): min(min), max(max)
 {
     center = 0.5f * (min + max);
 }
 
-vec3 Box::getMin()
+glm::vec3 Box::getMin()
 {
     return min;
 }
 
-vec3 Box::getMax()
+glm::vec3 Box::getMax()
 {
     return max;
 }
 
-vec3 Box::getCenter()
+glm::vec3 Box::getCenter()
 {
     return center;
 }
 
 Box Box::add(Box box)
 {
-    vec3 Min(fmin(min.x, box.min.x), fmin(min.y, box.min.y), fmin(min.z, box.min.z));
-    vec3 Max(fmax(max.x, box.max.x), fmax(max.y, box.max.y), fmax(max.z, box.max.z));
+    glm::vec3 Min(fmin(min.x, box.min.x), fmin(min.y, box.min.y), fmin(min.z, box.min.z));
+    glm::vec3 Max(fmax(max.x, box.max.x), fmax(max.y, box.max.y), fmax(max.z, box.max.z));
     return Box(Min, Max);
 }
 
