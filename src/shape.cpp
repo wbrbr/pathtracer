@@ -5,9 +5,7 @@
 TransformedShape::TransformedShape(Shape* s, glm::mat4 transform)
 {
     shape = s; 
-    std::cout << glm::to_string(transform) << std::endl;
     invTransform = glm::inverse(transform);
-    std::cout << glm::to_string(invTransform) << std::endl;
 }
 
 std::optional<IntersectionData> TransformedShape::intersects(Ray ray)

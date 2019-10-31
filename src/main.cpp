@@ -16,13 +16,15 @@
 #include "camera.hpp"
 #include "pdf.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "json.hpp"
+using json = nlohmann::json;
 
 #include <fenv.h>
 
 // WARN: must divide the number of rows in the output image
 #define NUM_THREADS 10
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 500
+#define NUM_SAMPLES 100
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
 {
@@ -61,7 +63,7 @@ glm::vec3 color(World world, Ray ray, int bounces)
     } else {
         return glm::mix(glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
         //return glm::vec3(0.1f, .1f, .1f);
-        // return glm::vec3(0.f, 0.f, 0.f);
+        return glm::vec3(0.f, 0.f, 0.f);
     }
 }
 
@@ -104,32 +106,83 @@ void trace_rays(int i, int width, int height, int sample_count, std::vector<glm:
     }
 }
 
-int main() {
+World cornellBox()
+{
+    World world;
+    /*TriangleMesh* red = new TriangleMesh("meshes/plane.obj", new DiffuseMaterial(glm::vec3(1.f, 0.2f, 0.2f)));
+    TriangleMesh* green = new TriangleMesh("meshes/plane.obj", new DiffuseMaterial(glm::vec3(0.1f, 1.f, 0.1f)));
+    TriangleMesh* wall = new TriangleMesh("meshes/plane.obj", new DiffuseMaterial(glm::vec3(.7f, .7f, .7f)));
+    TriangleMesh* cube = new TriangleMesh("meshes/cube.obj", new DiffuseMaterial(glm::vec3(.7f, .7f, .7f)));
+    TriangleMesh* light = new TriangleMesh("meshes/plane.obj", new EmissionMaterial(glm::vec3(3.f, 3.f, 3.f)));
+
+    glm::mat4 t, r, s;
+
+    const float pi = (float)M_PI;
+    TransformedShape* leftcube = new TransformedShape(cube, glm::rotate(glm::scale(glm::mat4(1.f), glm::vec3(1.f, 1.4f, 1.f)), (float)M_PI/5.f, glm::vec3(0.f, 1.f, 0.f)));
+
+    t = glm::translate(glm::mat4(1.f), glm::vec3(-2.f, 0.f, 0.f));
+    r = glm::rotate(glm::mat4(1.f), pi/2.f, glm::vec3(0.f, 1.f, 0.f));
+    s = glm::scale(glm::mat4(1.f), glm::vec3(10.f, 10.f, 10.f));
+    TransformedShape* leftwall = new TransformedShape(red, t * r * s);
+
+    t = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 0.2f));
+    s = glm::scale(glm::mat4(1.f), glm::vec3(4.f, 4.f, 1.f));
+    TransformedShape* back = new TransformedShape(wall, t*s);
+
+    t = glm::translate(glm::mat4(1.f), glm::vec3(2.f, 0.f, 0.f));
+    r = glm::rotate(glm::mat4(1.f), pi/2.f, glm::vec3(0.f, 1.f, 0.f));
+    s = glm::scale(glm::mat4(1.f), glm::vec3(10.f, 10.f, 10.f));
+    TransformedShape* rightwall = new TransformedShape(green, t*r*s);
+
+    s = glm::scale(glm::mat4(1.f), glm::vec3(10.f, 1.f, 10.f));
+    r = glm::rotate(glm::mat4(1.f), pi/2.f, glm::vec3(1.f, 0.f, 0.f));
+    t = glm::translate(glm::mat4(1.f), glm::vec3(0.f, .8f, 0.f));
+    TransformedShape* ceiling = new TransformedShape(wall, t*r*s);
+
+    s = glm::scale(glm::mat4(1.f), glm::vec3(0.3f, 0.3f, 0.3f));
+    //s = glm::mat4(1.f); 
+    t = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.1f, 0.85f));
+    r = glm::rotate(glm::mat4(1.f), pi/2.f, glm::vec3(1.f, 0.f, 0.f));
+    //r = glm::mat4(1.f);
+    TransformedShape* lamp = new TransformedShape(light, t*r*s);
+
+    world.add(lamp);
+    world.add(leftwall);
+    world.add(back);
+    world.add(rightwall);
+    world.add(ceiling);*/
+    Sphere* sphere = new Sphere(glm::vec3(0.f, 0.f, 0.f), 1.f, new DiffuseMaterial(glm::vec3(0.3f, .8f, .5f)));
+    world.add(sphere);
+    return world;
+}
+
+int main(int argc, char** argv) {
     /* Box b(glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 1.f, 1.f));
     Ray r(glm::vec3(0.5f, 0.5f, -1.f), glm::vec3(0.5f, 0.5f, 1.f));
     std::cout << b.intersects(r) << std::endl;
     return 0; */
     //feenableexcept(FE_INVALID | FE_OVERFLOW);
-    World world;
-    DiffuseMaterial mat(glm::vec3(0.8f, 0.8f, 0.f));
-    // MetalMaterial met(glm::vec3(0.9f, 0.9f, 0.9f), 0.05f);
-    MetalMaterial met(glm::vec3(.9f, .9f, .9f), 0.1f);
-    EmissionMaterial light(glm::vec3(2.f, 2.f, 2.f));
-    TriangleMesh cube("meshes/cube.obj", new DiffuseMaterial(glm::vec3(0.8f, .1f, .3f)));
-    TransformedShape trans_cube(&cube, glm::translate(glm::mat4(1.f), glm::vec3(0.f, .7f, 0.f)));
+    if (argc < 4) {
+        fprintf(stderr, "Usage: %s <width> <height> <out>", argv[0]);
+        return 1;
+    }
+    const int WIDTH = atoi(argv[1]);
+    const int HEIGHT = atoi(argv[2]);
 
-    // TriangleMesh tm("cube.obj", &mat);
-	// world.add(&tm);
-    world.add(&trans_cube);
-    //world.add(new Sphere(glm::vec3(0.f, 0.f, 0.f), 0.4f, new DiffuseMaterial(glm::vec3(0.8f, 0.3f, 0.3f))));
-	//world.add(new Sphere(glm::vec3(0.8f, 0.f, -1.f), 0.4f, &met));
-	world.add(new Sphere(glm::vec3(0.8f, 0.f, -1.f), 0.4f, new DiffuseMaterial(glm::vec3(0.4f, 0.6f, 0.7f))));
-    //world.add(new Sphere(glm::vec3(0.f, -100.4f, 0.f), 100.f, new DiffuseMaterial(glm::vec3(0.8f, 0.8f, 0.f))));
-    world.add(new Sphere(glm::vec3(0.f, -100.4f, 0.f), 100.f, &met));
-    world.add(new Sphere(glm::vec3(-0.5f, 0.f, 1.f), 0.4f, &light));
-	Camera cam(glm::vec3(0.5f, 1.f, 1.f), glm::vec3(0.f, 0.f, 0.f));
-    const int WIDTH = 500;
-    const int HEIGHT = 500;
+    json j;
+    std::cin >> j;
+
+    glm::vec3 cam_pos;
+    cam_pos.x = j["camera"][0];
+    cam_pos.y = j["camera"][1];
+    cam_pos.z = j["camera"][2];
+
+    float fov_y_rad = j["fov"];
+    float focal = 1.f / tan(fov_y_rad/2.f);
+
+    World world = cornellBox();
+
+	Camera cam(cam_pos, glm::vec3(0.f, 0.f, 0.f), focal);
     std::vector<glm::vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
     std::mutex pixels_mutex;
@@ -144,5 +197,5 @@ int main() {
         threads[i].join();
     }
 
-    write_png("out.png", WIDTH, HEIGHT, pixels.data());
+    write_png(argv[3], WIDTH, HEIGHT, pixels.data());
 }
