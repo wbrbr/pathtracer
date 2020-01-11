@@ -14,6 +14,7 @@ public:
     bool intersects(Ray ray);
 
 private:
-    glm::vec3 min, max, center;
+    glm::vec3 bounds[2];
+    glm::vec3 center;
 };
 #endif

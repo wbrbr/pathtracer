@@ -2,7 +2,7 @@
 #include "util.hpp"
 #include <iostream>
 
-Camera::Camera(glm::vec3 position, glm::vec3 target, float focal_dist): position(position), direction(glm::normalize(target - position)), focal_dist(focal_dist)
+Camera::Camera(glm::vec3 position, glm::vec3 target, float focal_dist): position(position), direction(glm::normalize(target - position)), focal(focal_dist)
 {
 }
 
@@ -17,6 +17,6 @@ Ray Camera::getRay(int x, int y, int width, int height)
     float u = xf + random_between(-0.5f / (float)width, 0.5f / (float)width); // adjusted for aspect ratio
     float v = yf + random_between(-0.5f / (float)height, 0.5f / (float)height); // [-1, 1]
 	glm::vec3 offset = u * right + v * up;
-	return Ray(position, glm::normalize(direction * focal_dist + offset));
+	return Ray(position, glm::normalize(direction * focal + offset));
 }
 

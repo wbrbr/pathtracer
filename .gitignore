@@ -1,3 +1,4 @@
 *.o
 raytracer
 out.png
+.vscode/

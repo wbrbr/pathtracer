@@ -22,7 +22,7 @@ using json = nlohmann::json;
 #include <fenv.h>
 
 // WARN: must divide the number of rows in the output image
-#define NUM_THREADS 10
+#define NUM_THREADS 2
 #define NUM_BOUNCES 10
 #define NUM_SAMPLES 100
 
@@ -151,8 +151,10 @@ World cornellBox()
     world.add(back);
     world.add(rightwall);
     world.add(ceiling);*/
-    Sphere* sphere = new Sphere(glm::vec3(0.f, 0.f, 0.f), 1.f, new DiffuseMaterial(glm::vec3(0.3f, .8f, .5f)));
-    world.add(sphere);
+    // Sphere* sphere = new Sphere(glm::vec3(0.f, 0.f, 0.f), 1.f, new DiffuseMaterial(glm::vec3(0.3f, .8f, .5f)));
+    // world.add(sphere);
+    TriangleMesh* suzanne = new TriangleMesh("meshes/suzanne.obj", new DiffuseMaterial(glm::vec3(1.f, 0.2f, 0.2f)));
+    world.add(suzanne);
     return world;
 }
 
@@ -169,15 +171,17 @@ int main(int argc, char** argv) {
     const int WIDTH = atoi(argv[1]);
     const int HEIGHT = atoi(argv[2]);
 
-    json j;
-    std::cin >> j;
+    // json j;
+    // std::cin >> j;
 
-    glm::vec3 cam_pos;
-    cam_pos.x = j["camera"][0];
-    cam_pos.y = j["camera"][1];
-    cam_pos.z = j["camera"][2];
+    glm::vec3 cam_pos(0.f, 0.f, 1.6f);
+    // cam_pos.x = j["camera"][0];
+    // cam_pos.y = j["camera"][1];
+    // cam_pos.z = j["camera"][2];
 
-    float fov_y_rad = j["fov"];
+    // float fov_y_rad = j["fov"];
+    // float focal = 1.f / tan(fov_y_rad/2.f);
+    float fov_y_rad = 40.f * M_PI / 180.f;
     float focal = 1.f / tan(fov_y_rad/2.f);
 
     World world = cornellBox();
