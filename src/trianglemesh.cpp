@@ -198,13 +198,16 @@ TriangleMesh::TriangleMesh(std::string path, Material* material): material(mater
 	}
 
 	assert(shapes.size() > 0);
-	tinyobj::mesh_t mesh = shapes[0].mesh;
-	for (unsigned int i = 0; i < mesh.num_face_vertices.size(); i++)
-	{
-		assert(mesh.num_face_vertices[i] == 3);
-		triangles.push_back(Triangle(this, mesh.indices[3 * i].vertex_index, mesh.indices[3 * i + 1].vertex_index, mesh.indices[3 * i + 2].vertex_index));
-	}
-
+    for (unsigned int i = 0; i <= 5; i++)
+    {
+        auto mesh = shapes[i].mesh;
+        std::cout << mesh.num_face_vertices.size() << std::endl;
+        for (unsigned int i = 0; i < mesh.num_face_vertices.size(); i++)
+        {
+            assert(mesh.num_face_vertices[i] == 3);
+            triangles.push_back(Triangle(this, mesh.indices[3 * i].vertex_index, mesh.indices[3 * i + 1].vertex_index, mesh.indices[3 * i + 2].vertex_index));
+        }
+    }
 
     std::cout << "Building BVH" << std::endl;
     root.triangles = triangles;

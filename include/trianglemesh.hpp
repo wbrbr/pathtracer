@@ -2,6 +2,7 @@
 #define TRIANGLE_MESH_HPP
 #include <optional>
 #include <vector>
+#include <string>
 #include "shape.hpp"
 #include "ray.hpp"
 #include "glm/vec3.hpp"
