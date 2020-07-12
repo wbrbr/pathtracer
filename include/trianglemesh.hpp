@@ -12,13 +12,12 @@ class TriangleMesh;
 class Triangle
 {
 public:
-	Triangle(TriangleMesh* tm, int i0, int i1, int i2);
     Box boundingBox();
 	std::optional<IntersectionData> intersects(Ray ray);
 
-private:
 	TriangleMesh* tm;
 	int i0, i1, i2;
+    Material* mat;
 };
 
 struct BVHNode
@@ -39,15 +38,19 @@ struct BVHNode
 class TriangleMesh: public Shape
 {
 public:
-	TriangleMesh(std::string path, Material* material);
+	TriangleMesh( Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices);
 	std::optional<IntersectionData> intersects(Ray ray);
 	glm::vec3 getVertex(int i);
     Material* getMaterial();
 
 private:
-	Material* material;
 	std::vector<Triangle> triangles;
+	Material* material;
 	std::vector<glm::vec3> vertices;
     BVHNode root;
 };
+
+class World;
+class Material;
+void loadObj(std::string path, World* world, Material* mat);
 #endif

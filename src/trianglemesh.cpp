@@ -1,4 +1,6 @@
 #include "trianglemesh.hpp"
+#include "world.hpp"
+#include "material.hpp"
 #include <cassert>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
@@ -107,10 +109,6 @@ void buildBVHNode(BVHNode* node)
 }
 
 
-Triangle::Triangle(TriangleMesh* tm, int i0, int i1, int i2) : tm(tm), i0(i0), i1(i1), i2(i2)
-{
-}
-
 inline float fmin(float a, float b, float c)
 {
     return fmin(fmin(a, b), c);
@@ -163,56 +161,72 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 		IntersectionData inter;
 		inter.t = t;
 		inter.normal = glm::normalize(glm::cross(edge1, edge2)); // TODO: cache triangle normal
-        inter.material = tm->getMaterial();
+        inter.material = mat;
 		return inter;
 	}
 	else // This means that there is a line intersection but not a ray intersection.
 		return {};
 }
 
-TriangleMesh::TriangleMesh(std::string path, Material* material): material(material)
+TriangleMesh::TriangleMesh(Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices)
+    : triangles(triangles), material(material), vertices(vertices)
 {
-	/* vertices.push_back(glm::vec3(-0.5f, -0.5f, 0.5f));
-	vertices.push_back(glm::vec3(0.5f, -0.5f, 0.5f));
-	vertices.push_back(glm::vec3(-0.5f, 0.5f, 0.5f));
-	vertices.push_back(glm::vec3(0.5f, 0.5f, 0.5f));
-	Triangle t1(this, 0, 1, 2);
-	Triangle t2(this, 2, 1, 3);
-	triangles.push_back(t1);
-	triangles.push_back(t2); */
-	std::vector<tinyobj::shape_t> shapes;
-	tinyobj::attrib_t attrib;
-	std::ifstream stream(path);
-	std::string warn, err;
-	tinyobj::LoadObj(&attrib, &shapes, nullptr, &warn, &err, &stream);
-	if (!warn.empty()) {
-		std::cerr << "Warning: " << warn << std::endl;
-	}
-	if (!err.empty()) {
-		std::cerr << "Error: " << err << std::endl;
-	}
+    for (Triangle& triangle : this->triangles)
+    {
+        triangle.tm = this;
+    }
+    root.triangles = this->triangles;
+    buildBVHNode(&root);
+}
 
+void loadObj(std::string path, World* world, Material* mat)
+{
+    tinyobj::ObjReaderConfig config;
+    config.triangulate = true;
+    config.vertex_color = false;
+    config.mtl_search_path = "";
+
+    tinyobj::ObjReader reader;
+    reader.ParseFromFile(path, config);
+    if (!reader.Valid()) {
+        std::cerr << reader.Error() << std::endl;
+        return;
+    }
+
+	std::vector<tinyobj::shape_t> shapes = reader.GetShapes();
+	tinyobj::attrib_t attrib = reader.GetAttrib();
+    std::vector<tinyobj::material_t> materials = reader.GetMaterials();
+
+    std::vector<glm::vec3> vertices;
 	for (unsigned int i = 0; i < attrib.vertices.size() / 3; i++)
 	{
 		vertices.push_back(glm::vec3(attrib.vertices[3 * i], attrib.vertices[3 * i + 1], attrib.vertices[3 * i + 2]));
 	}
 
 	assert(shapes.size() > 0);
-    for (unsigned int i = 0; i <= 5; i++)
+    for (unsigned int i = 0; i < shapes.size(); i++)
     {
         auto mesh = shapes[i].mesh;
-        std::cout << mesh.num_face_vertices.size() << std::endl;
+        std::vector<Triangle> triangles;
         for (unsigned int i = 0; i < mesh.num_face_vertices.size(); i++)
         {
             assert(mesh.num_face_vertices[i] == 3);
-            triangles.push_back(Triangle(this, mesh.indices[3 * i].vertex_index, mesh.indices[3 * i + 1].vertex_index, mesh.indices[3 * i + 2].vertex_index));
+            Triangle triangle;
+            triangle.i0 = mesh.indices[3*i].vertex_index;
+            triangle.i1 = mesh.indices[3*i+1].vertex_index;
+            triangle.i2 = mesh.indices[3*i+2].vertex_index;
+            int mat_id = mesh.material_ids[i];
+            if (mat_id == -1) triangle.mat = mat;
+            else {
+                tinyobj::material_t mtl = materials[mat_id];
+                triangle.mat = new DiffuseMaterial(glm::vec3(mtl.diffuse[0], mtl.diffuse[1], mtl.diffuse[2]));
+            }
+            triangles.push_back(triangle);
         }
-    }
 
-    std::cout << "Building BVH" << std::endl;
-    root.triangles = triangles;
-    buildBVHNode(&root);
-    std::cout << "Done" << std::endl;
+        TriangleMesh* tm = new TriangleMesh(mat, triangles, vertices);
+        world->add(tm);
+    }
 }
 
 std::optional<IntersectionData> TriangleMesh::intersects(Ray ray)

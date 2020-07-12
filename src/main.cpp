@@ -84,8 +84,7 @@ glm::vec3 color(World world, Ray ray, int bounces)
 World cornellBox()
 {
     World world;
-    TriangleMesh* scene = new TriangleMesh("meshes/cornell.obj", new DiffuseMaterial(glm::vec3(1, .7, .7)));
-    world.add(scene);
+    loadObj("meshes/cornell.obj", &world, new DiffuseMaterial(glm::vec3(.7, .7, .7)));
     return world;
 }
 
