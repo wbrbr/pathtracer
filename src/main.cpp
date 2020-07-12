@@ -21,7 +21,7 @@ using json = nlohmann::json;
 #include <fenv.h>
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 10
+#define NUM_SAMPLES 100
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
 {
@@ -46,15 +46,22 @@ glm::vec3 color(World world, Ray ray, int bounces)
     if (inter) {
         assert(inter->material != nullptr);
         PDF* pdf = inter->material->getPDF(inter->normal);
+
+        // not an emissive material. is this really correct ?
         if (pdf != nullptr) {
-            auto res = world.sampleLights();
-            //glm::vec3 new_dir = pdf->sample();
-            glm::vec3 new_dir = glm::normalize(res.first - ray.at(inter->t));
+            glm::vec3 new_dir;
+            float p;
+            if (random_between(0., 1.) < .5) {
+                auto res = world.sampleLights(ray.at(inter->t));
+                new_dir = glm::normalize(res.first - ray.at(inter->t));
+                p = res.second;
+            } else {
+                new_dir = pdf->sample();
+                p = pdf->value(new_dir);
+            }
             Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
             glm::vec3 c = (bounces > 0) ? color(world, new_ray, bounces-1) : glm::vec3(0.f, 0.f, 0.f);
             glm::vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
-            //float p = pdf->value(new_dir);
-            float p = res.second;
             delete pdf;
             return inter->material->emitted() + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
         } else {
@@ -110,6 +117,8 @@ int main(int argc, char** argv) {
     std::vector<glm::vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
 
+    int done = 0;
+    int percent = 0;
 #pragma omp parallel for
     for (int i = 0; i < WIDTH*HEIGHT; i++)
     {
@@ -120,6 +129,14 @@ int main(int argc, char** argv) {
         {
             Ray ray = cam.getRay(xi, yi, WIDTH, HEIGHT);
             c += color(world, ray, NUM_BOUNCES);
+        }
+
+#pragma omp atomic
+        done++;
+
+        if (done * 100 / (WIDTH*HEIGHT) > percent) {
+            percent = done * 100 / (WIDTH*HEIGHT);
+            std::cout << "Done: " << percent << "%" << std::endl;
         }
         c /= (float)NUM_SAMPLES;
         pixels[i] = c;

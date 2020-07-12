@@ -140,6 +140,15 @@ float Triangle::area()
     return .5f * glm::length(glm::cross(v1 - v0, v2 - v0));
 }
 
+glm::vec3 Triangle::normal()
+{
+    glm::vec3 v0 = tm->getVertex(i0);
+    glm::vec3 v1 = tm->getVertex(i1);
+    glm::vec3 v2 = tm->getVertex(i2);
+
+    return glm::normalize(glm::cross(v1 - v0, v2 - v0));
+}
+
 std::optional<IntersectionData> Triangle::intersects(Ray ray)
 {
 	const float EPSILON = 0.0000001;

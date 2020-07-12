@@ -1,5 +1,6 @@
 #include "util.hpp"
 #include <random>
+#include <iostream>
 
 // no idea
 thread_local std::mt19937 rng(2019);
@@ -37,13 +38,23 @@ glm::vec3 random_unit_disk()
 	return p;
 }
 
+// Building an Orthonormal Basis, Revisited
+// http://jcgt.org/published/0006/01/01/paper.pdf
 std::pair<glm::vec3, glm::vec3> plane_onb_from_normal(glm::vec3 n)
 {
-	glm::vec3 v(1.f, 0.f, 0.f);
-	if (dot(v, n) >= 0.9) v = glm::vec3(0.f, 1.f, 0.f);
-	glm::vec3 a = glm::cross(n, v);
-	glm::vec3 b = glm::cross(n, a);
-	return std::make_pair(a, b);
+    if (n.z < 0.) {
+        const float a = 1.f / (1.f - n.z);
+        const float b = n.x * n.y * a;
+        glm::vec3 b1(1.f - n.x * n.x * a, -b, n.x);
+        glm::vec3 b2(b, n.y * n.y * a - 1.f, -n.y);
+        return std::make_pair(b1, b2);
+    } else {
+        const float a = 1.f / (1.f + n.z);
+        const float b = -n.x * n.y * a;
+        glm::vec3 b1(1.f - n.x * n.x * a, b, -n.x);
+        glm::vec3 b2(b, 1.f - n.y * n.y * a, -n.y);
+        return std::make_pair(b1, b2);
+    }
 }
 
 float random_between(float a, float b)

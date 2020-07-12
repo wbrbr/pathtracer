@@ -15,6 +15,7 @@ public:
     Box boundingBox();
 	std::optional<IntersectionData> intersects(Ray ray);
     float area();
+    glm::vec3 normal();
 
 	TriangleMesh* tm;
 	int i0, i1, i2;

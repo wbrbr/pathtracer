@@ -1,6 +1,9 @@
 #include "world.hpp"
 #include "util.hpp"
 #include <algorithm>
+#include <iostream>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/norm.hpp>
 
 World::World()
 {
@@ -38,11 +41,17 @@ std::optional<IntersectionData> World::intersects(Ray ray)
     return closest;
 }
 
-std::pair<glm::vec3, float> World::sampleLights()
+std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
 {
     assert(lights.size() > 0);
     int light_id = random_int(0, lights.size()-1);
 
     glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
-    return std::make_pair(point, 1.f / (lights[light_id]->area() * (float)lights.size()));
+    glm::vec3 v = point - p;
+    glm::vec3 dir = glm::normalize(v);
+
+    float area = lights[light_id]->area();
+    float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
+    float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
+    return std::make_pair(point, pdf);
 }
