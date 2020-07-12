@@ -131,6 +131,15 @@ Box Triangle::boundingBox()
     return Box(min, max);
 }
 
+float Triangle::area()
+{
+    glm::vec3 v0 = tm->getVertex(i0);
+    glm::vec3 v1 = tm->getVertex(i1);
+    glm::vec3 v2 = tm->getVertex(i2);
+
+    return .5f * glm::length(glm::cross(v1 - v0, v2 - v0));
+}
+
 std::optional<IntersectionData> Triangle::intersects(Ray ray)
 {
 	const float EPSILON = 0.0000001;
@@ -168,7 +177,11 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 		return {};
 }
 
-TriangleMesh::TriangleMesh(Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices)
+TriangleMesh::TriangleMesh()
+{
+}
+
+/*TriangleMesh::TriangleMesh(Material* material, std::vector<Triangle>&& triangles, std::vector<glm::vec3>& vertices)
     : triangles(triangles), material(material), vertices(vertices)
 {
     for (Triangle& triangle : this->triangles)
@@ -177,7 +190,7 @@ TriangleMesh::TriangleMesh(Material* material, std::vector<Triangle>& triangles,
     }
     root.triangles = this->triangles;
     buildBVHNode(&root);
-}
+} */
 
 void loadObj(std::string path, World* world, Material* mat)
 {
@@ -207,7 +220,11 @@ void loadObj(std::string path, World* world, Material* mat)
     for (unsigned int i = 0; i < shapes.size(); i++)
     {
         auto mesh = shapes[i].mesh;
-        std::vector<Triangle> triangles;
+        TriangleMesh* tm = new TriangleMesh;
+        tm->vertices = vertices;
+        // we need this, otherwise the pointers in World::lights might be invalidated by
+        // a reallocation for push_back
+        tm->root.triangles.reserve(mesh.num_face_vertices.size());
         for (unsigned int i = 0; i < mesh.num_face_vertices.size(); i++)
         {
             assert(mesh.num_face_vertices[i] == 3);
@@ -215,21 +232,29 @@ void loadObj(std::string path, World* world, Material* mat)
             triangle.i0 = mesh.indices[3*i].vertex_index;
             triangle.i1 = mesh.indices[3*i+1].vertex_index;
             triangle.i2 = mesh.indices[3*i+2].vertex_index;
+            triangle.tm = tm;
+            bool is_light = false;
             int mat_id = mesh.material_ids[i];
             if (mat_id == -1) {
                 triangle.mat = mat;
             } else {
                 tinyobj::material_t mtl = materials[mat_id];
                 glm::vec3 emission(mtl.emission[0], mtl.emission[1], mtl.emission[2]);
-                if (glm::length(emission) > 0) triangle.mat = new EmissionMaterial(emission);
-                else triangle.mat = new DiffuseMaterial(glm::vec3(mtl.diffuse[0], mtl.diffuse[1], mtl.diffuse[2]));
+                if (glm::length(emission) > 0) {
+                    is_light = true;
+                    triangle.mat = new EmissionMaterial(emission);
+                } else {
+                    triangle.mat = new DiffuseMaterial(glm::vec3(mtl.diffuse[0], mtl.diffuse[1], mtl.diffuse[2]));
+                }
             }
-            triangles.push_back(triangle);
+            tm->root.triangles.push_back(triangle);
+            if (is_light) world->addLight(tm->root.triangles.data() + tm->root.triangles.size() - 1);
         }
 
-        TriangleMesh* tm = new TriangleMesh(mat, triangles, vertices);
+        buildBVHNode(&tm->root);
         world->add(tm);
     }
+    std::cout << "done" << std::endl;
 }
 
 std::optional<IntersectionData> TriangleMesh::intersects(Ray ray)
@@ -252,9 +277,4 @@ glm::vec3 TriangleMesh::getVertex(int i)
 {
 	assert((unsigned int)i < vertices.size());
 	return vertices.at(i);
-}
-
-Material* TriangleMesh::getMaterial()
-{
-    return material;
 }

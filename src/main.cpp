@@ -21,7 +21,7 @@ using json = nlohmann::json;
 #include <fenv.h>
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 1000
+#define NUM_SAMPLES 10
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
 {
@@ -47,11 +47,14 @@ glm::vec3 color(World world, Ray ray, int bounces)
         assert(inter->material != nullptr);
         PDF* pdf = inter->material->getPDF(inter->normal);
         if (pdf != nullptr) {
-            glm::vec3 new_dir = pdf->sample();
+            auto res = world.sampleLights();
+            //glm::vec3 new_dir = pdf->sample();
+            glm::vec3 new_dir = glm::normalize(res.first - ray.at(inter->t));
             Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
             glm::vec3 c = (bounces > 0) ? color(world, new_ray, bounces-1) : glm::vec3(0.f, 0.f, 0.f);
             glm::vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
-            float p = pdf->value(new_dir);
+            //float p = pdf->value(new_dir);
+            float p = res.second;
             delete pdf;
             return inter->material->emitted() + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
         } else {

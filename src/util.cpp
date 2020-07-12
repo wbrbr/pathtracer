@@ -51,3 +51,24 @@ float random_between(float a, float b)
     std::uniform_real_distribution dist(a, b);
     return dist(rng);
 }
+
+// https://pharr.org/matt/blog/2019/02/27/triangle-sampling-1.html
+glm::vec3 uniformSampleTriangle(Triangle& triangle)
+{
+    std::uniform_real_distribution dist(0., 1.);
+    float su0 = sqrt(dist(rng));
+    float b0 = 1. - su0;
+    float b1 = dist(rng) * su0;
+
+    glm::vec3 v0 = triangle.tm->getVertex(triangle.i0);
+    glm::vec3 v1 = triangle.tm->getVertex(triangle.i1);
+    glm::vec3 v2 = triangle.tm->getVertex(triangle.i2);
+
+    return b0 * v0 + b1 * v1 + (1.f - b0 - b1) * v2;
+}
+
+int random_int(int a, int b)
+{
+    std::uniform_int_distribution dist(a, b);
+    return dist(rng);
+}

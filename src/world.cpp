@@ -1,4 +1,5 @@
 #include "world.hpp"
+#include "util.hpp"
 #include <algorithm>
 
 World::World()
@@ -8,6 +9,11 @@ World::World()
 void World::add(Shape* s)
 {
     shapes.push_back(s);
+}
+
+void World::addLight(Triangle* tri)
+{
+    lights.push_back(tri);
 }
 
 std::optional<IntersectionData> World::intersects(Ray ray)
@@ -30,4 +36,13 @@ std::optional<IntersectionData> World::intersects(Ray ray)
     }
 
     return closest;
+}
+
+std::pair<glm::vec3, float> World::sampleLights()
+{
+    assert(lights.size() > 0);
+    int light_id = random_int(0, lights.size()-1);
+
+    glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
+    return std::make_pair(point, 1.f / (lights[light_id]->area() * (float)lights.size()));
 }

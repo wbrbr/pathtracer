@@ -14,6 +14,7 @@ class Triangle
 public:
     Box boundingBox();
 	std::optional<IntersectionData> intersects(Ray ray);
+    float area();
 
 	TriangleMesh* tm;
 	int i0, i1, i2;
@@ -38,14 +39,11 @@ struct BVHNode
 class TriangleMesh: public Shape
 {
 public:
-	TriangleMesh( Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices);
+	//TriangleMesh( Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices);
+    TriangleMesh();
 	std::optional<IntersectionData> intersects(Ray ray);
 	glm::vec3 getVertex(int i);
-    Material* getMaterial();
 
-private:
-	std::vector<Triangle> triangles;
-	Material* material;
 	std::vector<glm::vec3> vertices;
     BVHNode root;
 };
