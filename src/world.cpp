@@ -52,6 +52,26 @@ std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
 
     float area = lights[light_id]->area();
     float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
+    // TODO: handle occlusion
     float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
     return std::make_pair(point, pdf);
+}
+
+float World::lightPdf(Ray ray)
+{
+    float pdf = 0;
+    
+    for (Triangle* tri : lights)
+    {
+        // TODO: handle occlusion
+        auto inter = tri->intersects(ray);
+        if (!inter) continue;
+
+        float area = tri->area();
+        float cos = fabs(glm::dot(tri->normal(), -ray.d));
+        pdf += inter->t * inter->t / (area * cos);
+    }
+    pdf /= (float)lights.size();
+
+    return pdf;
 }

@@ -51,19 +51,23 @@ glm::vec3 color(World world, Ray ray, int bounces)
         if (pdf != nullptr) {
             glm::vec3 new_dir;
             float p;
+            float weight;
             if (random_between(0., 1.) < .5) {
                 auto res = world.sampleLights(ray.at(inter->t));
                 new_dir = glm::normalize(res.first - ray.at(inter->t));
+                weight = res.second / (res.second + pdf->value(new_dir));
                 p = res.second;
             } else {
                 new_dir = pdf->sample();
                 p = pdf->value(new_dir);
+                Ray r(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
+                weight = p / (p + world.lightPdf(r));
             }
             Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
             glm::vec3 c = (bounces > 0) ? color(world, new_ray, bounces-1) : glm::vec3(0.f, 0.f, 0.f);
             glm::vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
             delete pdf;
-            return inter->material->emitted() + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
+            return inter->material->emitted() + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) * weight / (.5f * p);
         } else {
             return inter->material->emitted();
         }

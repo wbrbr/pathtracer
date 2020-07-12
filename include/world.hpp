@@ -14,6 +14,7 @@ public:
     void addLight(Triangle* tri);
     std::optional<IntersectionData> intersects(Ray ray);
     std::pair<glm::vec3, float> sampleLights(glm::vec3 p);
+    float lightPdf(Ray ray);
 
 private:
 	// TODO: use smart pointers instead ? (unique_ptr) or delete in destructor
