@@ -21,7 +21,7 @@ using json = nlohmann::json;
 #include <fenv.h>
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 100
+#define NUM_SAMPLES 1000
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
 {
@@ -58,7 +58,7 @@ glm::vec3 color(World world, Ray ray, int bounces)
             return inter->material->emitted();
         }
     } else {
-        return glm::mix(glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
+        //return glm::mix(glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
         //return glm::vec3(0.1f, .1f, .1f);
         return glm::vec3(0.f, 0.f, 0.f);
     }

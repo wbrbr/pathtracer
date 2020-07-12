@@ -216,10 +216,13 @@ void loadObj(std::string path, World* world, Material* mat)
             triangle.i1 = mesh.indices[3*i+1].vertex_index;
             triangle.i2 = mesh.indices[3*i+2].vertex_index;
             int mat_id = mesh.material_ids[i];
-            if (mat_id == -1) triangle.mat = mat;
-            else {
+            if (mat_id == -1) {
+                triangle.mat = mat;
+            } else {
                 tinyobj::material_t mtl = materials[mat_id];
-                triangle.mat = new DiffuseMaterial(glm::vec3(mtl.diffuse[0], mtl.diffuse[1], mtl.diffuse[2]));
+                glm::vec3 emission(mtl.emission[0], mtl.emission[1], mtl.emission[2]);
+                if (glm::length(emission) > 0) triangle.mat = new EmissionMaterial(emission);
+                else triangle.mat = new DiffuseMaterial(glm::vec3(mtl.diffuse[0], mtl.diffuse[1], mtl.diffuse[2]));
             }
             triangles.push_back(triangle);
         }
