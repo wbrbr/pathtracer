@@ -1,5 +1,8 @@
 #include "box.hpp"
 #include <cmath>
+#ifdef NANCHECK
+#include <fenv.h>
+#endif
 
 Box::Box()
 {
@@ -53,6 +56,9 @@ bool Box::intersects(Ray r)
     }
     return true; */
     // http://www.cs.utah.edu/~awilliam/box/box.pdf
+#ifdef NANCHECK
+    fedisableexcept(FE_INVALID | FE_OVERFLOW);
+#endif
     const float t0 = 0.f;
     const float t1 = 100.f;
     float tmin,tmax,tymin,tymax,tzmin,tzmax;
@@ -69,4 +75,7 @@ bool Box::intersects(Ray r)
     if (tzmin> tmin)tmin= tzmin;
     if (tzmax< tmax) tmax= tzmax;
     return( (tmin< t1) && (tmax> t0) );
+#ifdef NANCHECK
+    feenableexcept(FE_INVALID | FE_OVERFLOW);
+#endif
 }

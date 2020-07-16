@@ -14,6 +14,7 @@ public:
     void addLight(Triangle* tri);
     std::optional<IntersectionData> intersects(Ray ray);
     std::pair<glm::vec3, float> sampleLights(glm::vec3 p);
+    glm::vec3 directLighting(Ray ray, IntersectionData inter);
     float lightPdf(Ray ray);
 
 private:

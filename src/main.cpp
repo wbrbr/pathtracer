@@ -18,9 +18,11 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
+#ifdef NANCHECK
 #include <fenv.h>
+#endif
 
-#define NUM_BOUNCES 10
+#define NUM_BOUNCES 0
 #define NUM_SAMPLES 100
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
@@ -40,36 +42,29 @@ void write_png(std::string path, int w, int h, glm::vec3* pixels)
     stbi_write_png(path.c_str(), w, h, 3, data.data(), 0);
 }
 
-glm::vec3 color(World world, Ray ray, int bounces)
+glm::vec3 color(World& world, Ray ray, int bounces)
 {
     auto inter = world.intersects(ray);
     if (inter) {
         assert(inter->material != nullptr);
         PDF* pdf = inter->material->getPDF(inter->normal);
 
-        // not an emissive material. is this really correct ?
+        // not an emissive material. this actually isn't correct
         if (pdf != nullptr) {
-            glm::vec3 new_dir;
-            float p;
-            float weight;
-            if (random_between(0., 1.) < .5) {
-                auto res = world.sampleLights(ray.at(inter->t));
-                new_dir = glm::normalize(res.first - ray.at(inter->t));
-                weight = res.second / (res.second + pdf->value(new_dir));
-                p = res.second;
-            } else {
-                new_dir = pdf->sample();
-                p = pdf->value(new_dir);
-                Ray r(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
-                weight = p / (p + world.lightPdf(r));
-            }
+            glm::vec3 direct = world.directLighting(ray, *inter);
+
+            glm::vec3 new_dir = pdf->sample();
+            float p = pdf->value(new_dir);
+
             Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
             glm::vec3 c = (bounces > 0) ? color(world, new_ray, bounces-1) : glm::vec3(0.f, 0.f, 0.f);
             glm::vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
             delete pdf;
-            return inter->material->emitted() + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) * weight / (.5f * p);
-        } else {
+            return direct + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
+        } else if (bounces == NUM_BOUNCES) { // no bounce
             return inter->material->emitted();
+        } else { // purely emissive material, already taken into account by NEE
+            return glm::vec3(0);
         }
     } else {
         //return glm::mix(glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
@@ -103,7 +98,9 @@ World cornellBox()
 }
 
 int main(int argc, char** argv) {
-    //feenableexcept(FE_INVALID | FE_OVERFLOW);
+#ifdef NANCHECK
+    feenableexcept(FE_INVALID | FE_OVERFLOW);
+#endif
     if (argc < 4) {
         fprintf(stderr, "Usage: %s <width> <height> <out>", argv[0]);
         return 1;

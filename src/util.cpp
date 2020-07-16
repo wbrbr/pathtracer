@@ -7,7 +7,7 @@ thread_local std::mt19937 rng(2019);
 
 glm::vec3 random_unit_sphere()
 {
-    std::uniform_real_distribution dist(-1.f, 1.f);
+    std::uniform_real_distribution<double> dist(-1.f, 1.f);
     glm::vec3 p;
     do {
         p.x = dist(rng);
@@ -28,7 +28,7 @@ glm::vec3 random_unit_hemisphere(glm::vec3 n)
 
 glm::vec3 random_unit_disk()
 {
-	std::uniform_real_distribution dist(-1.f, 1.f);
+	std::uniform_real_distribution<double> dist(-1.f, 1.f);
 	glm::vec3 p;
 	p.z = 0.f;
 	do {
@@ -59,27 +59,30 @@ std::pair<glm::vec3, glm::vec3> plane_onb_from_normal(glm::vec3 n)
 
 float random_between(float a, float b)
 {
-    std::uniform_real_distribution dist(a, b);
+    std::uniform_real_distribution<double> dist(a, b);
     return dist(rng);
 }
 
 // https://pharr.org/matt/blog/2019/02/27/triangle-sampling-1.html
 glm::vec3 uniformSampleTriangle(Triangle& triangle)
 {
-    std::uniform_real_distribution dist(0., 1.);
+    std::uniform_real_distribution<double> dist(0., 1.);
     float su0 = sqrt(dist(rng));
-    float b0 = 1. - su0;
+    float b0 = 1.f - su0;
     float b1 = dist(rng) * su0;
 
     glm::vec3 v0 = triangle.tm->getVertex(triangle.i0);
     glm::vec3 v1 = triangle.tm->getVertex(triangle.i1);
     glm::vec3 v2 = triangle.tm->getVertex(triangle.i2);
 
+    assert(b0 >= 0);
+    assert(b1 >= 0);
+
     return b0 * v0 + b1 * v1 + (1.f - b0 - b1) * v2;
 }
 
 int random_int(int a, int b)
 {
-    std::uniform_int_distribution dist(a, b);
+    std::uniform_int_distribution<int> dist(a, b);
     return dist(rng);
 }

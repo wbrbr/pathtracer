@@ -1,9 +1,11 @@
 #include "world.hpp"
 #include "util.hpp"
+#include "material.hpp"
 #include <algorithm>
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/norm.hpp>
+#include <optional>
 
 World::World()
 {
@@ -75,3 +77,30 @@ float World::lightPdf(Ray ray)
 
     return pdf;
 }
+
+#define VECNAN_CHECK(x) if (glm::any(glm::isnan(x))) std::cout << "nan found" << std::endl
+#define NAN_CHECK(x) if (std::isnan(x)) std::cout << "nan found" << std::endl
+glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
+{
+    assert(lights.size() > 0);
+    int light_id = random_int(0, lights.size()-1);
+
+    glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
+    glm::vec3 v = point - ray.at(inter.t);
+    glm::vec3 dir = glm::normalize(v);
+
+    // visibility testing
+    Ray light_ray(ray.at(inter.t), dir);
+    // auto test_inter = lights[light_id]->intersects(light_ray);
+    auto light_inter = intersects(light_ray);
+    if (!light_inter || light_inter->t < glm::length(v) - 0.001) return glm::vec3(0);
+    // assert(light_inter->t <= glm::length(v));
+    /* std::cout << glm::length(v) - light_inter->t << std::endl; */
+
+    float area = lights[light_id]->area();
+    float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
+    float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
+
+    return glm::dot(dir, inter.normal) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted() / pdf;
+}
+
