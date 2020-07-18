@@ -97,7 +97,6 @@ std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHNode* nod
     }
 
     unsigned int min_index = std::min_element(costs.begin(), costs.end()) - costs.begin();
-    std::cout << min_index << std::endl;
     auto split = node->triangles.begin() + min_index;
 
     std::pair<std::vector<Triangle>, std::vector<Triangle>> res;
@@ -312,6 +311,5 @@ std::optional<IntersectionData> TriangleMesh::intersects(Ray ray)
 
 glm::vec3 TriangleMesh::getVertex(int i)
 {
-	assert((unsigned int)i < vertices.size());
-	return vertices.at(i);
+	return vertices[i];
 }
