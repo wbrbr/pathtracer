@@ -22,16 +22,25 @@ public:
     Material* mat;
 };
 
-struct BVHNode
+struct BVHBuildNode
 {
     std::vector<Triangle> triangles;
+    Box box;
+    BVHBuildNode* left;
+    BVHBuildNode* right;
+
+    ~BVHBuildNode();
+    std::optional<IntersectionData> intersects(Ray ray);
+};
+
+/* struct BVHNode
+{
     Box box;
     BVHNode* left;
     BVHNode* right;
 
-    ~BVHNode();
     std::optional<IntersectionData> intersects(Ray ray);
-};
+}; */
 
 class TriangleMesh: public Shape
 {
@@ -42,7 +51,7 @@ public:
 	glm::vec3 getVertex(int i);
 
 	std::vector<glm::vec3> vertices;
-    BVHNode root;
+    BVHBuildNode root;
 };
 
 class World;

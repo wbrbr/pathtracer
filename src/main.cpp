@@ -43,9 +43,8 @@ void write_png(std::string path, int w, int h, glm::vec3* pixels)
     stbi_write_png(path.c_str(), w, h, 3, data.data(), 0);
 }
 
-glm::vec3 color(World& world, Ray ray, int bounces)
+glm::vec3 color(World& world, Ray ray, int bounces, std::optional<IntersectionData> inter)
 {
-    auto inter = world.intersects(ray);
     if (inter) {
         assert(inter->material != nullptr);
         PDF* pdf = inter->material->getPDF(inter->normal);
@@ -58,7 +57,11 @@ glm::vec3 color(World& world, Ray ray, int bounces)
             float p = pdf->value(new_dir);
 
             Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
-            glm::vec3 c = (bounces > 0) ? color(world, new_ray, bounces-1) : glm::vec3(0.f, 0.f, 0.f);
+            glm::vec3 c(0);
+            if (bounces > 0) {
+                auto new_inter = world.intersects(new_ray);
+                c = color(world, new_ray, bounces-1, new_inter);
+            }
             glm::vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
             delete pdf;
             return direct + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
@@ -127,10 +130,11 @@ int main(int argc, char** argv) {
         int xi = i % WIDTH;
         int yi = i / WIDTH;
         glm::vec3 c(0.f, 0.f, 0.f);
+        Ray ray = cam.getRay(xi, yi, WIDTH, HEIGHT);
+        auto primary_intersection = world.intersects(ray);
         for (int s = 0; s < NUM_SAMPLES; s++)
         {
-            Ray ray = cam.getRay(xi, yi, WIDTH, HEIGHT);
-            c += glm::min(color(world, ray, NUM_BOUNCES), glm::vec3(CLAMP_CONSTANT));
+            c += glm::min(color(world, ray, NUM_BOUNCES, primary_intersection), glm::vec3(CLAMP_CONSTANT));
         }
 
 #pragma omp atomic

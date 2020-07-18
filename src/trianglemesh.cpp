@@ -7,13 +7,13 @@
 #include <iostream>
 #include <algorithm>
 
-BVHNode::~BVHNode()
+BVHBuildNode::~BVHBuildNode()
 {
     if (left != nullptr) delete left; 
     if (right != nullptr) delete right;
 }
 
-std::optional<IntersectionData> BVHNode::intersects(Ray ray)
+std::optional<IntersectionData> BVHBuildNode::intersects(Ray ray)
 {
     if (!box.intersects(ray)) {
         return {};
@@ -60,7 +60,7 @@ bool compareZ(Triangle s1, Triangle s2)
     return s1.boundingBox().getCenter().z < s2.boundingBox().getCenter().z;
 }
 
-std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHNode* node)
+std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHBuildNode* node)
 {
     glm::vec3 sides = node->box.getMax() - node->box.getMin();
     
@@ -106,7 +106,7 @@ std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHNode* nod
     return res;
 }
 
-Box computeBoundingBox(BVHNode* node)
+Box computeBoundingBox(BVHBuildNode* node)
 {
     Box b = node->triangles.at(0).boundingBox();
     for (Triangle s : node->triangles)
@@ -116,16 +116,16 @@ Box computeBoundingBox(BVHNode* node)
     return b;
 }
 
-void buildBVHNode(BVHNode* node)
+void buildBVHNode(BVHBuildNode* node)
 {
     node->box = computeBoundingBox(node);
     if (node->triangles.size() > 3) {
         auto split = splitShapes(node);
-        node->left = new BVHNode;
+        node->left = new BVHBuildNode;
         node->left->triangles = split.first;
-        node->right = new BVHNode;
+        node->right = new BVHBuildNode;
         node->right->triangles = split.second;
-
+        node->triangles.clear();
         buildBVHNode(node->left);
         buildBVHNode(node->right);
     } else { // leaf
@@ -216,17 +216,6 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 TriangleMesh::TriangleMesh()
 {
 }
-
-/*TriangleMesh::TriangleMesh(Material* material, std::vector<Triangle>&& triangles, std::vector<glm::vec3>& vertices)
-    : triangles(triangles), material(material), vertices(vertices)
-{
-    for (Triangle& triangle : this->triangles)
-    {
-        triangle.tm = this;
-    }
-    root.triangles = this->triangles;
-    buildBVHNode(&root);
-} */
 
 void loadObj(std::string path, World* world, Material* mat)
 {
