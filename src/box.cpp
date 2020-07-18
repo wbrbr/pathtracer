@@ -79,3 +79,9 @@ bool Box::intersects(Ray r)
     feenableexcept(FE_INVALID | FE_OVERFLOW);
 #endif
 }
+
+float Box::surfaceArea()
+{
+    glm::vec3 d = bounds[1] - bounds[0];
+    return 2.f * (d.x * d.y + d.x * d.z + d.y * d.z);
+}

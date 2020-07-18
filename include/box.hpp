@@ -12,6 +12,7 @@ public:
     glm::vec3 getCenter();
     Box add(Box box);
     bool intersects(Ray ray);
+    float surfaceArea();
 
 private:
     glm::vec3 bounds[2];

@@ -22,8 +22,9 @@ using json = nlohmann::json;
 #include <fenv.h>
 #endif
 
-#define NUM_BOUNCES 0
+#define NUM_BOUNCES 4
 #define NUM_SAMPLES 100
+#define CLAMP_CONSTANT 100000.f
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
 {
@@ -120,7 +121,7 @@ int main(int argc, char** argv) {
 
     int done = 0;
     int percent = 0;
-#pragma omp parallel for
+#pragma omp parallel for schedule(static,16)
     for (int i = 0; i < WIDTH*HEIGHT; i++)
     {
         int xi = i % WIDTH;
@@ -129,7 +130,7 @@ int main(int argc, char** argv) {
         for (int s = 0; s < NUM_SAMPLES; s++)
         {
             Ray ray = cam.getRay(xi, yi, WIDTH, HEIGHT);
-            c += color(world, ray, NUM_BOUNCES);
+            c += glm::min(color(world, ray, NUM_BOUNCES), glm::vec3(CLAMP_CONSTANT));
         }
 
 #pragma omp atomic

@@ -15,7 +15,7 @@ DiffuseMaterial::DiffuseMaterial(glm::vec3 albedo): albedo(albedo)
 
 PDF* DiffuseMaterial::getPDF(glm::vec3 n)
 {
-    //return new CosineHemispherePDF(n);
+    // return new CosineHemispherePDF(n);
     return new UniformHemispherePDF(n);
 }
 

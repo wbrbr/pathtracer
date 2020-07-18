@@ -72,10 +72,37 @@ std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHNode* nod
         std::sort(node->triangles.begin(), node->triangles.end(), compareZ);
     }
 
-    auto last = node->triangles.begin() + node->triangles.size()/2;
+    std::vector<float> costs;
+
+    for (unsigned int i = 0; i < node->triangles.size(); i++)
+    {
+        Box b0;
+        Box b1;
+        unsigned int count0 = 0;
+        unsigned int count1 = 0;
+
+        for (unsigned int j = 1; j < i; j++)
+        {
+            b0 = b0.add(node->triangles[j].boundingBox());
+            count0++;
+        }
+
+        for (unsigned int j = i; j < node->triangles.size(); j++)
+        {
+            b1 = b1.add(node->triangles[j].boundingBox());
+            count1++;
+        }
+
+        costs.push_back(.125f * (count0 * b0.surfaceArea() + count1 * b1.surfaceArea()) / node->box.surfaceArea());
+    }
+
+    unsigned int min_index = std::min_element(costs.begin(), costs.end()) - costs.begin();
+    std::cout << min_index << std::endl;
+    auto split = node->triangles.begin() + min_index;
+
     std::pair<std::vector<Triangle>, std::vector<Triangle>> res;
-    res.first = std::vector<Triangle>(node->triangles.begin(), last);
-    res.second = std::vector<Triangle>(last, node->triangles.end());
+    res.first = std::vector<Triangle>(node->triangles.begin(), split);
+    res.second = std::vector<Triangle>(split, node->triangles.end());
 
     return res;
 }
@@ -179,6 +206,7 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 		IntersectionData inter;
 		inter.t = t;
 		inter.normal = glm::normalize(glm::cross(edge1, edge2)); // TODO: cache triangle normal
+        // if (glm::dot(-ray.d, inter.normal) < 0) inter.normal *= -1.f;
         inter.material = mat;
 		return inter;
 	}
