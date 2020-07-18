@@ -22,7 +22,7 @@ using json = nlohmann::json;
 #include <fenv.h>
 #endif
 
-#define NUM_BOUNCES 4
+#define NUM_BOUNCES 10
 #define NUM_SAMPLES 100
 #define CLAMP_CONSTANT 100000.f
 
@@ -43,38 +43,40 @@ void write_png(std::string path, int w, int h, glm::vec3* pixels)
     stbi_write_png(path.c_str(), w, h, 3, data.data(), 0);
 }
 
-glm::vec3 color(World& world, Ray ray, int bounces, std::optional<IntersectionData> inter)
+glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<IntersectionData> primary_inter)
 {
-    if (inter) {
-        assert(inter->material != nullptr);
-        PDF* pdf = inter->material->getPDF(inter->normal);
+    auto inter = primary_inter;
+    Ray ray = primary_ray;
+    glm::vec3 L(0.f);
+    glm::vec3 throughput(0.f);
+    for (int i = 0; i < bounces; i++)
+    {
+        if (inter) {
+            if (i == 0) L += throughput * inter->material->emitted();
+            L += throughput * world.directLighting(ray, *inter);
 
-        // not an emissive material. this actually isn't correct
-        if (pdf != nullptr) {
-            glm::vec3 direct = world.directLighting(ray, *inter);
+            assert(inter->material != nullptr);
+            PDF* pdf = inter->material->getPDF(inter->normal);
 
             glm::vec3 new_dir = pdf->sample();
             float p = pdf->value(new_dir);
 
-            Ray new_ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
-            glm::vec3 c(0);
-            if (bounces > 0) {
-                auto new_inter = world.intersects(new_ray);
-                c = color(world, new_ray, bounces-1, new_inter);
-            }
-            glm::vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
+            ray = Ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
+
+            glm::vec3 f = inter->material->eval(-ray.d, new_dir, inter->normal);
             delete pdf;
-            return direct + dot(new_dir, inter->normal) * glm::vec3(c.x * att.x, c.y * att.y, c.z * att.z) / p;
-        } else if (bounces == NUM_BOUNCES) { // no bounce
-            return inter->material->emitted();
-        } else { // purely emissive material, already taken into account by NEE
-            return glm::vec3(0);
+            throughput *= glm::dot(new_dir, inter->normal) * f / p;
+
+            if (i > 2) {
+                float q = std::max(.05f, 1.f - throughput.length());
+                if (random_between(0.f, 1.f)) break;
+                throughput /= (1.f - q);
+            }
+        } else {
+            return glm::vec3(0.f, 0.f, 0.f);
         }
-    } else {
-        //return glm::mix(glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
-        //return glm::vec3(0.1f, .1f, .1f);
-        return glm::vec3(0.f, 0.f, 0.f);
     }
+    return L;
 }
 
 /* glm::vec3 color(World world, Ray ray, int bounces)

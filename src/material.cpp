@@ -94,7 +94,7 @@ EmissionMaterial::EmissionMaterial(glm::vec3 emission)
 
 PDF* EmissionMaterial::getPDF(glm::vec3 n)
 {
-    return nullptr;
+    return new UniformHemispherePDF(n);
 }
 
 glm::vec3 EmissionMaterial::eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n)
