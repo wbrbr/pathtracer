@@ -78,8 +78,6 @@ float World::lightPdf(Ray ray)
     return pdf;
 }
 
-#define VECNAN_CHECK(x) if (glm::any(glm::isnan(x))) std::cout << "nan found" << std::endl
-#define NAN_CHECK(x) if (std::isnan(x)) std::cout << "nan found" << std::endl
 glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 {
     assert(lights.size() > 0);
@@ -90,7 +88,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     glm::vec3 dir = glm::normalize(v);
 
     // visibility testing
-    Ray light_ray(ray.at(inter.t), dir);
+    Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
     // auto test_inter = lights[light_id]->intersects(light_ray);
     auto light_inter = intersects(light_ray);
     if (!light_inter || light_inter->t < glm::length(v) - 0.001) return glm::vec3(0);
