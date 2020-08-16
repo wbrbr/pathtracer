@@ -95,6 +95,33 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
     }
 } */
 
+glm::vec3 volume(Ray ray)
+{
+    const float sigma_t = 1.;
+    const glm::vec3 sky_color(.6, .7, .8);
+
+    Sphere vol(glm::vec3(0.), 1.f, nullptr);
+    auto inter = vol.intersects(ray);
+    if (!inter) {
+        return sky_color;
+    }
+
+    float tmin = inter->t;
+
+    ray.o = ray.at(tmin) + 0.001f * ray.d;
+    inter = vol.intersects(ray);
+    if (!inter || inter->t < 0) {
+        return sky_color;
+    }
+
+    float tmax = tmin + inter->t;
+
+    float d = tmax - tmin;
+    assert(d >= 0);
+    float attenuation =  exp(-sigma_t * d);
+    return attenuation * sky_color;
+}
+
 
 World cornellBox()
 {
@@ -120,7 +147,7 @@ int main(int argc, char** argv) {
 
     World world = cornellBox();
 
-	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
+	Camera cam(cam_pos, glm::vec3(0.f, 0.f, 0.f), focal);
     std::vector<glm::vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
 
@@ -136,7 +163,8 @@ int main(int argc, char** argv) {
         auto primary_intersection = world.intersects(ray);
         for (int s = 0; s < NUM_SAMPLES; s++)
         {
-            c += glm::min(color(world, ray, NUM_BOUNCES, primary_intersection), glm::vec3(CLAMP_CONSTANT));
+            // c += glm::min(color(world, ray, NUM_BOUNCES, primary_intersection), glm::vec3(CLAMP_CONSTANT));
+            c += volume(ray);
         }
 
 #pragma omp atomic
