@@ -23,7 +23,7 @@ using json = nlohmann::json;
 #endif
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 100
+#define NUM_SAMPLES 1000
 #define CLAMP_CONSTANT 100000.f
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
@@ -97,7 +97,7 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
 
 glm::vec3 volume(Ray ray)
 {
-    const float sigma_t = 1.;
+    const float sigma_hat = 1.3f; // must be >= radius (max absorption coef)
     const glm::vec3 sky_color(.6, .7, .8);
 
     Sphere vol(glm::vec3(0.), 1.f, nullptr);
@@ -118,8 +118,21 @@ glm::vec3 volume(Ray ray)
 
     float d = tmax - tmin;
     assert(d >= 0);
-    float attenuation =  exp(-sigma_t * d);
-    return attenuation * sky_color;
+
+    // ratio tracking transmittance estimation
+    float tr = 1.f;
+    float t = 0.;
+
+    for (;;) {
+        float rnd = random_between(0., 1.);
+        t -= log(1 - rnd) / sigma_hat;
+        if (t > d) break;
+        float sigma_t = glm::length(ray.at(t));
+        // float sigma_t = 1.;
+        tr *= 1.f - sigma_t / sigma_hat;
+    }
+
+    return tr * sky_color;
 }
 
 
