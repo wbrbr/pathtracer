@@ -95,6 +95,42 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
     }
 } */
 
+float sample(Ray ray, float d, glm::vec3& new_pos)
+{
+    float sigma_t = 1.f;
+    float sigma_s = .5f;
+
+    float rnd = random_between(0.f, 1.f);
+    float t = -log(1.f - rnd) / sigma_t;
+
+    if (t < d) {
+        new_pos = ray.at(d) + 0.001f * ray.d;
+        return sigma_s;
+    } else {
+        return 1.; // this is a little weird, but ok
+        // float tr = exp(-sigma_t * d);
+        // float pdf =
+        // return tr / density;
+    }
+}
+
+glm::vec3 vol_lighting(glm::vec3 p, Sphere& sphere)
+{
+    float proba = .25f * M_1_PI;
+    glm::vec3 dir = random_unit_sphere();
+    Ray light_ray(p, dir);
+    auto inter = sphere.intersects(light_ray);
+    float sigma_t = 1.f;
+
+    if (inter) {
+        float d = inter->t; 
+        return exp(-sigma_t * d) * glm::vec3(.6, .7, .8);
+        return exp(-sigma_t * d) * glm::vec3(.6, .7, .8) / proba;
+    } else {
+        return glm::vec3(.6, .7, .8);
+    }
+}
+
 glm::vec3 volume(Ray ray)
 {
     const float sigma_hat = 1.3f; // must be >= radius (max absorption coef)
@@ -123,16 +159,37 @@ glm::vec3 volume(Ray ray)
     float tr = 1.f;
     float t = 0.;
 
-    for (;;) {
-        float rnd = random_between(0., 1.);
-        t -= log(1 - rnd) / sigma_hat;
-        if (t > d) break;
-        float sigma_t = glm::length(ray.at(t));
-        // float sigma_t = 1.;
-        tr *= 1.f - sigma_t / sigma_hat;
+    // for (;;) {
+    //     float rnd = random_between(0., 1.);
+    //     t -= log(1 - rnd) / sigma_hat;
+    //     if (t > d) break;
+    //     float sigma_t = glm::length(ray.at(t));
+    //     // float sigma_t = 1.;
+    //     tr *= 1.f - sigma_t / sigma_hat;
+    // }
+
+    float throughput = 1.f;
+    glm::vec3 L(0.f);
+
+    for (int bounce = 0; bounce < 10; bounce++) {
+        if (glm::length(ray.o) > 1.f) break;
+
+        glm::vec3 new_pos;
+        throughput *= sample(ray, d, new_pos);
+
+        if (glm::length(throughput) == 0.) break;
+
+        L += throughput * vol_lighting(new_pos, vol);
+        glm::vec3 new_dir = random_unit_sphere();
+        ray = Ray(new_pos, new_dir);
+        inter = vol.intersects(ray);
+        if (!inter) break;
+        d = inter->t;
+
+        // russian roulette
     }
 
-    return tr * sky_color;
+    return L;
 }
 
 
