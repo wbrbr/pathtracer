@@ -22,7 +22,7 @@ using json = nlohmann::json;
 #include <fenv.h>
 #endif
 
-#define NUM_BOUNCES 10
+#define NUM_BOUNCES 50
 #define NUM_SAMPLES 1000
 #define CLAMP_CONSTANT 100000.f
 
@@ -95,45 +95,21 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
     }
 } */
 
-float sample(Ray ray, float d, glm::vec3& new_pos)
+float sample_distance(float sigma_t, float sigma_hat)
 {
-    float sigma_t = 1.f;
-    float sigma_s = .5f;
-
-    float rnd = random_between(0.f, 1.f);
-    float t = -log(1.f - rnd) / sigma_t;
-
-    if (t < d) {
-        new_pos = ray.at(d) + 0.001f * ray.d;
-        return sigma_s;
-    } else {
-        return 1.; // this is a little weird, but ok
-        // float tr = exp(-sigma_t * d);
-        // float pdf =
-        // return tr / density;
+    float t = 0;
+    for (;;) {
+        t -= log(1 - random_between(0., 1.)) / sigma_hat;
+        if (random_between(0., 1.) < sigma_t / sigma_hat) {
+            break;
+        }
     }
-}
 
-glm::vec3 vol_lighting(glm::vec3 p, Sphere& sphere)
-{
-    float proba = .25f * M_1_PI;
-    glm::vec3 dir = random_unit_sphere();
-    Ray light_ray(p, dir);
-    auto inter = sphere.intersects(light_ray);
-    float sigma_t = 1.f;
-
-    if (inter) {
-        float d = inter->t; 
-        return exp(-sigma_t * d) * glm::vec3(.6, .7, .8);
-        return exp(-sigma_t * d) * glm::vec3(.6, .7, .8) / proba;
-    } else {
-        return glm::vec3(.6, .7, .8);
-    }
+    return t;
 }
 
 glm::vec3 volume(Ray ray)
 {
-    const float sigma_hat = 1.3f; // must be >= radius (max absorption coef)
     const glm::vec3 sky_color(.6, .7, .8);
 
     Sphere vol(glm::vec3(0.), 1.f, nullptr);
@@ -156,9 +132,8 @@ glm::vec3 volume(Ray ray)
     assert(d >= 0);
 
     // ratio tracking transmittance estimation
-    float tr = 1.f;
-    float t = 0.;
-
+    // float tr = 1.f;
+    // float t = 0.;
     // for (;;) {
     //     float rnd = random_between(0., 1.);
     //     t -= log(1 - rnd) / sigma_hat;
@@ -168,22 +143,39 @@ glm::vec3 volume(Ray ray)
     //     tr *= 1.f - sigma_t / sigma_hat;
     // }
 
+    float sigma_hat = 1.3f;
+    float sigma_t = 1.f;
+    float sigma_s = .5f;
     float throughput = 1.f;
     glm::vec3 L(0.f);
 
-    for (int bounce = 0; bounce < 10; bounce++) {
-        if (glm::length(ray.o) > 1.f) break;
 
+    for (;;)
+    {
         glm::vec3 new_pos;
-        throughput *= sample(ray, d, new_pos);
+        // float t = -log(1.f - random_between(0.f, 1.f)) / sigma_t;
+        float t = sample_distance(sigma_t, sigma_hat);
+
+        if (t < d) {
+            throughput *= sigma_s / sigma_t;
+        } else {
+            L += throughput * sky_color;
+            break;
+        }
+
+        // throughput *= homo_sample(ray, d, new_pos);
 
         if (glm::length(throughput) == 0.) break;
 
-        L += throughput * vol_lighting(new_pos, vol);
         glm::vec3 new_dir = random_unit_sphere();
-        ray = Ray(new_pos, new_dir);
+        ray = Ray(ray.at(t), new_dir);
+        assert(glm::length(ray.o) <= 1.);
         inter = vol.intersects(ray);
-        if (!inter) break;
+        // assert(inter); // we are inside the sphere so we should be colliding
+        if (!inter) { // we are out of the volume (precision error)
+            L += throughput * sky_color;
+            break;
+        }
         d = inter->t;
 
         // russian roulette
