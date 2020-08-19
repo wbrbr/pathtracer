@@ -14,6 +14,7 @@
 #include "trianglemesh.hpp"
 #include "camera.hpp"
 #include "pdf.hpp"
+#include "volume.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "json.hpp"
 using json = nlohmann::json;
@@ -113,6 +114,7 @@ glm::vec3 volume(Ray ray)
     const glm::vec3 sky_color(.6, .7, .8);
 
     Sphere vol(glm::vec3(0.), 1.f, nullptr);
+
     auto inter = vol.intersects(ray);
     if (!inter) {
         return sky_color;
@@ -149,12 +151,14 @@ glm::vec3 volume(Ray ray)
     float throughput = 1.f;
     glm::vec3 L(0.f);
 
+    HomogeneousVolume media(0, sigma_t, sigma_s);
+
 
     for (;;)
     {
         glm::vec3 new_pos;
         // float t = -log(1.f - random_between(0.f, 1.f)) / sigma_t;
-        float t = sample_distance(sigma_t, sigma_hat);
+        float t = media.sampleDistance();
 
         if (t < d) {
             throughput *= sigma_s / sigma_t;
@@ -167,7 +171,8 @@ glm::vec3 volume(Ray ray)
 
         if (glm::length(throughput) == 0.) break;
 
-        glm::vec3 new_dir = random_unit_sphere();
+        // glm::vec3 new_dir = random_unit_sphere();
+        glm::vec3 new_dir = media.samplePhase(-ray.d);
         ray = Ray(ray.at(t), new_dir);
         assert(glm::length(ray.o) <= 1.);
         inter = vol.intersects(ray);
