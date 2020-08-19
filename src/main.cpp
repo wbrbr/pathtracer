@@ -18,13 +18,14 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "json.hpp"
 using json = nlohmann::json;
+#include <openvdb/openvdb.h>
 
 #ifdef NANCHECK
 #include <fenv.h>
 #endif
 
-#define NUM_BOUNCES 50
-#define NUM_SAMPLES 1000
+#define NUM_BOUNCES 10
+#define NUM_SAMPLES 10
 #define CLAMP_CONSTANT 100000.f
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
@@ -109,7 +110,7 @@ float sample_distance(float sigma_t, float sigma_hat)
     return t;
 }
 
-glm::vec3 volume(Ray ray)
+glm::vec3 volume(Ray ray, Volume& media)
 {
     const glm::vec3 sky_color(.6, .7, .8);
 
@@ -146,22 +147,18 @@ glm::vec3 volume(Ray ray)
     // }
 
     float sigma_hat = 1.3f;
-    float sigma_t = 1.f;
-    float sigma_s = .5f;
+    float albedo = 0.1;
     float throughput = 1.f;
     glm::vec3 L(0.f);
 
-    HomogeneousVolume media(0, sigma_t, sigma_s);
 
-
-    for (;;)
+    for (int i = 0; i < 1; i++)
     {
-        glm::vec3 new_pos;
         // float t = -log(1.f - random_between(0.f, 1.f)) / sigma_t;
-        float t = media.sampleDistance();
+        float t = media.sampleDistance(ray);
 
         if (t < d) {
-            throughput *= sigma_s / sigma_t;
+            throughput *= albedo;
         } else {
             L += throughput * sky_color;
             break;
@@ -220,6 +217,11 @@ int main(int argc, char** argv) {
 
     int done = 0;
     int percent = 0;
+
+    openvdb::initialize();
+    // HomogeneousVolume media(0, sigma_t, .5);
+    HeterogeneousVolume media(0, "smoke.vdb", .5);
+
 #pragma omp parallel for schedule(static,16)
     for (int i = 0; i < WIDTH*HEIGHT; i++)
     {
@@ -231,7 +233,7 @@ int main(int argc, char** argv) {
         for (int s = 0; s < NUM_SAMPLES; s++)
         {
             // c += glm::min(color(world, ray, NUM_BOUNCES, primary_intersection), glm::vec3(CLAMP_CONSTANT));
-            c += volume(ray);
+            c += volume(ray, media);
         }
 
 #pragma omp atomic

@@ -1,11 +1,12 @@
 #include "volume.hpp"
 #include "util.hpp"
 #include <tuple>
+#include <openvdb/tools/Interpolation.h>
 
-HomogeneousVolume::HomogeneousVolume(float g, float sigma_t, float sigma_s): g(g), sigma_t(sigma_t), sigma_s(sigma_s)
+HomogeneousVolume::HomogeneousVolume(float g, float sigma_t, float albedo): g(g), sigma_t(sigma_t), albedo(albedo)
 {}
 
-float HomogeneousVolume::sampleDistance()
+float HomogeneousVolume::sampleDistance(Ray ray)
 {
     return -log(1 - random_between(0., 1.)) / sigma_t;
 }
@@ -32,6 +33,56 @@ glm::vec3 henyey_greenstein(float g, glm::vec3 dir)
 }
 
 glm::vec3 HomogeneousVolume::samplePhase(glm::vec3 dir)
+{
+    return henyey_greenstein(g, dir);
+}
+
+HeterogeneousVolume::HeterogeneousVolume(float g, std::string vdb_path, float albedo): g(g), albedo(albedo)
+{
+    openvdb::io::File file(vdb_path);
+    file.open();
+    openvdb::GridBase::Ptr baseGrid = file.readGrid("density");
+    file.close();
+    grid = openvdb::gridPtrCast<openvdb::FloatGrid>(baseGrid);
+
+    sigma_hat = 0.;
+
+    for (auto iter = grid->cbeginValueAll(); iter.test(); ++iter)
+    {
+        float v = *iter;
+        sigma_hat = std::max(sigma_hat, v);
+    }
+    // Request a value accessor for accelerated access.
+    // // (Because value accessors employ a cache, it is important to declare
+    // // one accessor per thread.)
+    // GridType::ConstAccessor accessor = grid.getConstAccessor();
+    // // Instantiate the GridSampler template on the accessor type and on
+    // // a box sampler for accelerated trilinear interpolation.
+    // openvdb::tools::GridSampler<GridType::ConstAccessor, openvdb::tools::BoxSampler>
+    //     fastSampler(accessor, grid.transform());
+}
+
+float HeterogeneousVolume::sampleDistance(Ray ray)
+{
+    openvdb::tools::GridSampler<openvdb::FloatGrid, openvdb::tools::BoxSampler> sampler(*grid);
+
+    float t = 0;
+    for (;;) {
+        t -= log(1 - random_between(0., 1.)) / sigma_hat;
+
+        glm::vec3 pos = ray.at(t);
+        float sigma_t = sampler.wsSample(openvdb::Vec3R(pos.x, pos.y, pos.z));
+
+        // get the density
+        if (random_between(0., 1.) < sigma_t / sigma_hat) {
+            break;
+        }
+    }
+
+    return t;
+}
+
+glm::vec3 HeterogeneousVolume::samplePhase(glm::vec3 dir)
 {
     return henyey_greenstein(g, dir);
 }
