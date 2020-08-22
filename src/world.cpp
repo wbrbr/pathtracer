@@ -91,7 +91,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
     // auto test_inter = lights[light_id]->intersects(light_ray);
     auto light_inter = intersects(light_ray);
-    if (!light_inter || light_inter->t < glm::length(v) - 0.001) return glm::vec3(0);
+    if (!light_inter || light_inter->t < glm::length(v) - 0.001 || glm::dot(lights[light_id]->normal(), -dir) <= 0) return glm::vec3(0);
     // assert(light_inter->t <= glm::length(v));
     /* std::cout << glm::length(v) - light_inter->t << std::endl; */
 
