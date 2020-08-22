@@ -142,10 +142,10 @@ int main(int argc, char** argv) {
         int xi = i % WIDTH;
         int yi = i / WIDTH;
         glm::vec3 c(0.f, 0.f, 0.f);
-        Ray ray = cam.getRay(xi, yi, WIDTH, HEIGHT);
-        auto primary_intersection = world.intersects(ray);
         for (int s = 0; s < NUM_SAMPLES; s++)
         {
+            Ray ray = cam.getRay(xi, yi, WIDTH, HEIGHT);
+            auto primary_intersection = world.intersects(ray);
             c += glm::min(color(world, ray, NUM_BOUNCES, primary_intersection), glm::vec3(CLAMP_CONSTANT));
         }
 
