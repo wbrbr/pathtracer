@@ -17,6 +17,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "json.hpp"
 using json = nlohmann::json;
+#include "glm/gtx/string_cast.hpp"
 
 #ifdef NANCHECK
 #include <fenv.h>
@@ -48,12 +49,19 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
     auto inter = primary_inter;
     Ray ray = primary_ray;
     glm::vec3 L(0.f);
-    glm::vec3 throughput(0.f);
-    for (int i = 0; i < bounces; i++)
+    glm::vec3 throughput(1.f);
+    for (int i = 0; i <= bounces; i++)
     {
         if (inter) {
             if (i == 0) L += throughput * inter->material->emitted();
-            L += throughput * world.directLighting(ray, *inter);
+
+            assert(throughput.x >= 0. && throughput.y >= 0. && throughput.z >= 0.);
+            glm::vec3 Ld = world.directLighting(ray, *inter);
+            assert(Ld.x >= 0 && Ld.y >= 0 && Ld.z >= 0);
+
+            L += throughput * Ld;
+            
+            // if (i == 1) std::cout << glm::to_string(throughput) << std::endl;
 
             assert(inter->material != nullptr);
             PDF* pdf = inter->material->getPDF(inter->normal);
@@ -61,19 +69,21 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
             glm::vec3 new_dir = pdf->sample();
             float p = pdf->value(new_dir);
 
-            ray = Ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
 
             glm::vec3 f = inter->material->eval(-ray.d, new_dir, inter->normal);
+
+            ray = Ray(ray.at(inter->t) + 0.001f * inter->normal, new_dir);
+
             delete pdf;
             throughput *= glm::dot(new_dir, inter->normal) * f / p;
 
-            if (i > 2) {
-                float q = std::max(.05f, 1.f - throughput.length());
-                if (random_between(0.f, 1.f)) break;
-                throughput /= (1.f - q);
-            }
-        } else {
-            return glm::vec3(0.f, 0.f, 0.f);
+            // if (i > 2) {
+            //     float q = std::max(.05f, 1.f - throughput.length());
+            //     if (random_between(0.f, 1.f)) break;
+            //     throughput /= (1.f - q);
+            // }
+            
+            inter = world.intersects(ray);
         }
     }
     return L;

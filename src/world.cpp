@@ -99,6 +99,6 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
     float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
 
-    return glm::dot(dir, inter.normal) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted() / pdf;
+    return (float)fabs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted() / pdf;
 }
 
