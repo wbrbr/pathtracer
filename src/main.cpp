@@ -55,9 +55,7 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
         if (inter) {
             if (i == 0) L += throughput * inter->material->emitted();
 
-            assert(throughput.x >= 0. && throughput.y >= 0. && throughput.z >= 0.);
             glm::vec3 Ld = world.directLighting(ray, *inter);
-            assert(Ld.x >= 0 && Ld.y >= 0 && Ld.z >= 0);
 
             L += throughput * Ld;
             
@@ -122,6 +120,14 @@ World cornellBox()
     return world;
 }
 
+World furnace()
+{
+    World world;
+    world.add(new Sphere(glm::vec3(0., 1., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
+    world.envlight = new EnvLight("");
+    return world;
+}
+
 int main(int argc, char** argv) {
 #ifdef NANCHECK
     feenableexcept(FE_INVALID | FE_OVERFLOW);
@@ -139,6 +145,7 @@ int main(int argc, char** argv) {
 
     World world = cornellBox();
     // World world = suzanne();
+    // World world = furnace();
 
 	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
     std::vector<glm::vec3> pixels;

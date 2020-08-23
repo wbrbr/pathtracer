@@ -96,6 +96,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         auto light_inter = intersects(light_ray);
         if (light_inter) return glm::vec3(0.);
 
+        // std::cout << (glm::dot(dir, inter.normal) * inter.material->eval(-ray.d, dir, inter.normal)).x << ":" << p << std::endl;
+        // glm::vec3 Ld = fn(dir) * (float)n / p;
+        // std::cout << glm::to_string(Ld) << std::endl;
         return fn(dir) * (float)n / p;
     } else {
 
