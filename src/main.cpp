@@ -61,8 +61,6 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
 
             L += throughput * Ld;
             
-            // if (i == 1) std::cout << glm::to_string(throughput) << std::endl;
-
             assert(inter->material != nullptr);
             PDF* pdf = inter->material->getPDF(inter->normal);
 
@@ -79,11 +77,14 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
 
             // if (i > 2) {
             //     float q = std::max(.05f, 1.f - throughput.length());
-            //     if (random_between(0.f, 1.f)) break;
+            //     if (random_between(0.f, 1.f) < q) break;
             //     throughput /= (1.f - q);
             // }
             
             inter = world.intersects(ray);
+        } else {
+            if (i == 0 && world.envlight) L += world.envlight->emitted(ray.d);
+            break;
         }
     }
     return L;
@@ -105,11 +106,19 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
     }
 } */
 
+World suzanne()
+{
+    World world;
+    loadObj("meshes/suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
+    world.envlight = new EnvLight("");
+    return world;
+}
 
 World cornellBox()
 {
     World world;
     loadObj("meshes/cornell.obj", &world, new DiffuseMaterial(glm::vec3(.7, .7, .7)));
+    world.envlight = new EnvLight("");
     return world;
 }
 
@@ -124,11 +133,12 @@ int main(int argc, char** argv) {
     const int WIDTH = atoi(argv[1]);
     const int HEIGHT = atoi(argv[2]);
 
-    glm::vec3 cam_pos(0.f, 1.f, 5.f);
-    float fov_y_rad = 40.f * M_PI / 180.f;
-    float focal = 1.f / tan(fov_y_rad/2.f);
+    glm::vec3 cam_pos(0.f, 1.f, 4.f);
+    float fov_y_rad = 19.5f * M_PI / 180.f;
+    float focal = .5f / tan(fov_y_rad/2.f);
 
     World world = cornellBox();
+    // World world = suzanne();
 
 	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
     std::vector<glm::vec3> pixels;
@@ -160,5 +170,6 @@ int main(int argc, char** argv) {
         pixels[i] = c;
     }
 
-    write_png(argv[3], WIDTH, HEIGHT, pixels.data());
+    //write_png(argv[3], WIDTH, HEIGHT, pixels.data());
+    stbi_write_hdr(argv[3], WIDTH, HEIGHT, 3, (float*)pixels.data());
 }

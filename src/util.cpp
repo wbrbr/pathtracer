@@ -2,8 +2,7 @@
 #include <random>
 #include <iostream>
 
-// no idea
-thread_local std::mt19937 rng(2019);
+thread_local std::mt19937 rng(std::random_device{}());
 
 glm::vec3 random_unit_sphere()
 {

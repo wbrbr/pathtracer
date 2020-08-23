@@ -9,6 +9,7 @@
 
 World::World()
 {
+    envlight = nullptr;
 }
 
 void World::add(Shape* s)
@@ -54,7 +55,6 @@ std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
 
     float area = lights[light_id]->area();
     float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
-    // TODO: handle occlusion
     float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
     return std::make_pair(point, pdf);
 }
@@ -65,7 +65,6 @@ float World::lightPdf(Ray ray)
     
     for (Triangle* tri : lights)
     {
-        // TODO: handle occlusion
         auto inter = tri->intersects(ray);
         if (!inter) continue;
 
@@ -80,25 +79,36 @@ float World::lightPdf(Ray ray)
 
 glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 {
-    assert(lights.size() > 0);
-    int light_id = random_int(0, lights.size()-1);
+    unsigned int n = lights.size();
+    if (envlight != nullptr) n++;
+    assert(n > 0);
+    int light_id = random_int(0, n-1);
 
-    glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
-    glm::vec3 v = point - ray.at(inter.t);
-    glm::vec3 dir = glm::normalize(v);
+    if ((unsigned)light_id == lights.size()) { // Sample environment lighting
+        glm::vec3 dir;
+        float p;
+        std::tie(dir, p) = envlight->sampleDirection(inter.normal);
 
-    // visibility testing
-    Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
-    // auto test_inter = lights[light_id]->intersects(light_ray);
-    auto light_inter = intersects(light_ray);
-    if (!light_inter || light_inter->t < glm::length(v) - 0.001 || glm::dot(lights[light_id]->normal(), -dir) <= 0) return glm::vec3(0);
-    // assert(light_inter->t <= glm::length(v));
-    /* std::cout << glm::length(v) - light_inter->t << std::endl; */
+        Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
+        auto light_inter = intersects(light_ray);
+        if (light_inter) return glm::vec3(0.);
 
-    float area = lights[light_id]->area();
-    float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
-    float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
+        return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * envlight->emitted(dir) * (float)n / p;
+    } else {
+        glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
+        glm::vec3 v = point - ray.at(inter.t);
+        glm::vec3 dir = glm::normalize(v);
 
-    return (float)fabs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted() / pdf;
+        Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
+        auto light_inter = intersects(light_ray);
+        if (!light_inter || light_inter->t < glm::length(v) - 0.001 || glm::dot(lights[light_id]->normal(), -dir) <= 0) return glm::vec3(0);
+
+        float area = lights[light_id]->area();
+        float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
+        float pdf = glm::length2(v) / (n * area * cos);
+
+        return (float)fabs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted() / pdf;
+    }
+
 }
 
