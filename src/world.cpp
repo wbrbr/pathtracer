@@ -84,7 +84,10 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     assert(n > 0);
     int light_id = random_int(0, n-1);
 
+    auto fn = [inter, ray, this](glm::vec3 dir) { return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * envlight->emitted(dir); };
+
     if ((unsigned)light_id == lights.size()) { // Sample environment lighting
+
         glm::vec3 dir;
         float p;
         std::tie(dir, p) = envlight->sampleDirection(inter.normal);
@@ -93,8 +96,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         auto light_inter = intersects(light_ray);
         if (light_inter) return glm::vec3(0.);
 
-        return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * envlight->emitted(dir) * (float)n / p;
+        return fn(dir) * (float)n / p;
     } else {
+
         glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
         glm::vec3 v = point - ray.at(inter.t);
         glm::vec3 dir = glm::normalize(v);
@@ -107,7 +111,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
         float pdf = glm::length2(v) / (n * area * cos);
 
-        return (float)fabs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted() / pdf;
+        return fn(dir) / pdf;
     }
 
 }

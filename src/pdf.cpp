@@ -14,7 +14,7 @@ UniformHemispherePDF::UniformHemispherePDF(glm::vec3 n)
 float UniformHemispherePDF::value(glm::vec3 v)
 {
     if (dot(v, n) < 0.f) return 0.f;
-    return .5f * M_1_PI;
+    return M_1_PI;
 }
 
 glm::vec3 UniformHemispherePDF::sample()
