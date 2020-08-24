@@ -59,25 +59,6 @@ std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
     return std::make_pair(point, pdf);
 }
 
-/* float World::lightPdf(Ray ray)
-{
-    unsigned int n = lights.size();
-    if (envlight) n++;
-
-    float pdf = 0;
-    
-    for (Triangle* tri : lights)
-    {
-        float area = tri->area();
-        float cos = fabs(glm::dot(tri->normal(), -ray.d));
-        pdf += inter->t * inter->t / (area * cos * (float)n);
-    }
-
-    if (envlight) pdf += .5f * M_1_PI / (float)n;
-
-    return pdf;
-} */
-
 glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 {
     unsigned int n = lights.size();
@@ -94,7 +75,6 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 
     // LIGHT SAMPLING
     if ((unsigned)light_id == lights.size()) { // Sample environment lighting
-
         glm::vec3 dir;
         float p;
         std::tie(dir, p) = envlight->sampleDirection(inter.normal);
@@ -115,7 +95,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         if (light_inter && light_inter->t >= glm::length(v) - 0.001 && glm::dot(lights[light_id]->normal(), -dir) > 0) {
             float area = lights[light_id]->area();
             float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
-            float p = glm::length2(v) / (n * area * cos);
+            float p = glm::length2(v) / (area * cos);
 
             Ld += fn(dir, lights[light_id]->mat->emitted()) / (p + pdf_brdf(dir));
         }
@@ -141,7 +121,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             if (light_inter->t >= scene_inter->t - 0.001f) {
                 float area = lights[light_id]->area();
                 float cos = std::abs(glm::dot(lights[light_id]->normal(), -dir));
-                float light_pdf = light_inter->t * light_inter->t / (n * area * cos);
+                float light_pdf = light_inter->t * light_inter->t / (area * cos);
 
                 Ld += fn(dir, lights[light_id]->mat->emitted()) / (p + light_pdf);
             }
