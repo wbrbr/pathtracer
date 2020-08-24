@@ -2,6 +2,7 @@
 #define WORLD_HPP
 #include <vector>
 #include <utility>
+#include <memory>
 #include "shape.hpp"
 #include "box.hpp"
 #include "trianglemesh.hpp"
@@ -18,7 +19,7 @@ public:
     glm::vec3 directLighting(Ray ray, IntersectionData inter);
     float lightPdf(Ray ray);
 
-    EnvLight* envlight;
+    std::unique_ptr<EnvLight> envlight;
 
 private:
 	// TODO: use smart pointers instead ? (unique_ptr) or delete in destructor

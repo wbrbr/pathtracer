@@ -63,15 +63,13 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 {
     unsigned int n = lights.size();
     if (envlight != nullptr) n++;
-    assert(n > 0);
+    if (n == 0) return glm::vec3(0.);
     int light_id = random_int(0, n-1);
 
     glm::vec3 Ld(0.);
 
     // the function that we want to integrate
-    // auto fn = [inter, ray, light_id, this](glm::vec3 dir) { return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted(); };
     auto fn = [inter, ray, light_id, this](glm::vec3 dir, glm::vec3 emitted) { return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * emitted; };
-    auto pdf_brdf = [inter](glm::vec3 dir) { return inter.material->getPDF(inter.normal)->value(dir); };
 
     // LIGHT SAMPLING
     if ((unsigned)light_id == lights.size()) { // Sample environment lighting
@@ -82,7 +80,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
         auto light_inter = intersects(light_ray);
         if (!light_inter) {
-            Ld += fn(dir, envlight->emitted(dir)) / (p + pdf_brdf(dir));
+            PDF* pdf_brdf = inter.material->getPDF(inter.normal);
+            Ld += fn(dir, envlight->emitted(dir)) / (p + pdf_brdf->value(dir));
+            delete pdf_brdf;
         }
     } else {
         glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
@@ -97,7 +97,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
             float p = glm::length2(v) / (area * cos);
 
-            Ld += fn(dir, lights[light_id]->mat->emitted()) / (p + pdf_brdf(dir));
+            PDF* pdf_brdf = inter.material->getPDF(inter.normal);
+            Ld += fn(dir, lights[light_id]->mat->emitted()) / (p + pdf_brdf->value(dir));
+            delete pdf_brdf;
         }
     }
 
@@ -127,6 +129,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             }
         }
     }
+    delete pdf;
 
     return Ld * (float)n;
 }

@@ -108,7 +108,7 @@ World suzanne()
 {
     World world;
     loadObj("meshes/suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
-    world.envlight = new EnvLight("");
+    world.envlight = std::make_unique<EnvLight>("bg.hdr");
     return world;
 }
 
@@ -116,15 +116,15 @@ World cornellBox()
 {
     World world;
     loadObj("meshes/cornell.obj", &world, new DiffuseMaterial(glm::vec3(.7, .7, .7)));
-    world.envlight = new EnvLight("");
+    world.envlight = std::make_unique<EnvLight>("bg.hdr");
     return world;
 }
 
 World furnace()
 {
     World world;
-    world.add(new Sphere(glm::vec3(0., 1., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
-    world.envlight = new EnvLight("");
+    // world.add(new Sphere(glm::vec3(0., 1., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
+    // world.envlight = new EnvLight("");
     return world;
 }
 
@@ -140,11 +140,11 @@ int main(int argc, char** argv) {
     const int HEIGHT = atoi(argv[2]);
 
     glm::vec3 cam_pos(0.f, 1.f, 4.f);
-    float fov_y_rad = 19.5f * M_PI / 180.f;
+    float fov_y_rad = 30.f * M_PI / 180.f;
     float focal = .5f / tan(fov_y_rad/2.f);
 
-    World world = cornellBox();
-    // World world = suzanne();
+    // World world = cornellBox();
+    World world = suzanne();
     // World world = furnace();
 
 	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
