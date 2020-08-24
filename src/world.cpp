@@ -88,8 +88,8 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     glm::vec3 Ld(0.);
 
     // the function that we want to integrate
-    auto fn = [inter, ray, this](glm::vec3 dir) { return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * envlight->emitted(dir); };
-
+    // auto fn = [inter, ray, light_id, this](glm::vec3 dir) { return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * lights[light_id]->mat->emitted(); };
+    auto fn = [inter, ray, light_id, this](glm::vec3 dir, glm::vec3 emitted) { return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * emitted; };
     auto pdf_brdf = [inter](glm::vec3 dir) { return inter.material->getPDF(inter.normal)->value(dir); };
 
     // LIGHT SAMPLING
@@ -102,10 +102,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
         auto light_inter = intersects(light_ray);
         if (!light_inter) {
-            Ld += fn(dir) / (p + pdf_brdf(dir));
+            Ld += fn(dir, envlight->emitted(dir)) / (p + pdf_brdf(dir));
         }
     } else {
-        assert(false);
         glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
         glm::vec3 v = point - ray.at(inter.t);
         glm::vec3 dir = glm::normalize(v);
@@ -118,9 +117,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
             float p = glm::length2(v) / (n * area * cos);
 
-            glm::vec3 brdf = inter.material->eval(-ray.d, dir, inter.normal);
-            float pdf = inter.material->getPDF(inter.normal)->value(dir);
-            Ld += (float)fabs(glm::dot(dir, inter.normal)) * brdf * lights[light_id]->mat->emitted() / (p + pdf);
+            Ld += fn(dir, lights[light_id]->mat->emitted()) / (p + pdf_brdf(dir));
         }
     }
 
@@ -136,18 +133,17 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     if ((unsigned)light_id == lights.size()) {
         auto scene_inter = intersects(light_ray);
         float light_pdf = glm::dot(light_ray.d, inter.normal) * M_1_PI;
-        if (!scene_inter) Ld += fn(dir) / (p + light_pdf);
+        if (!scene_inter) Ld += fn(dir, envlight->emitted(dir)) / (p + light_pdf);
     } else {
-        assert(false);
         auto light_inter = lights[light_id]->intersects(light_ray);
-        if (light_inter) {
+        if (light_inter && glm::dot(lights[light_id]->normal(), -dir) > 0) {
             auto scene_inter = intersects(light_ray);
             if (light_inter->t >= scene_inter->t - 0.001f) {
                 float area = lights[light_id]->area();
                 float cos = std::abs(glm::dot(lights[light_id]->normal(), -dir));
                 float light_pdf = light_inter->t * light_inter->t / (n * area * cos);
 
-                Ld += std::abs(glm::dot(dir, inter.normal)) * brdf * lights[light_id]->mat->emitted() / (p + light_pdf);
+                Ld += fn(dir, lights[light_id]->mat->emitted()) / (p + light_pdf);
             }
         }
     }
