@@ -24,7 +24,7 @@ using json = nlohmann::json;
 #endif
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 100
+#define NUM_SAMPLES 10000
 #define CLAMP_CONSTANT 100000.f
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
@@ -107,7 +107,8 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
 World suzanne()
 {
     World world;
-    loadObj("meshes/suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
+    // loadObj("meshes/suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
+    world.add(new Sphere(glm::vec3(0., 1., 0.), 1., new DiffuseMaterial(glm::vec3(1., 1.,1.))));
     world.envlight = std::make_unique<EnvLight>("bg.hdr");
     return world;
 }
@@ -123,8 +124,8 @@ World cornellBox()
 World furnace()
 {
     World world;
-    // world.add(new Sphere(glm::vec3(0., 1., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
-    // world.envlight = new EnvLight("");
+    world.add(new Sphere(glm::vec3(0., 1., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
+    world.envlight = std::make_unique<EnvLight>("bg.hdr");
     return world;
 }
 
@@ -144,8 +145,8 @@ int main(int argc, char** argv) {
     float focal = .5f / tan(fov_y_rad/2.f);
 
     // World world = cornellBox();
-    World world = suzanne();
-    // World world = furnace();
+    // World world = suzanne();
+    World world = furnace();
 
 	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
     std::vector<glm::vec3> pixels;

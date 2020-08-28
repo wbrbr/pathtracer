@@ -3,6 +3,8 @@
 #include <string>
 #include <glm/vec3.hpp>
 #include <utility>
+#include <vector>
+#include <random>
 #include "imagetexture.hpp"
 
 class EnvLight
@@ -14,5 +16,8 @@ public:
 
 private:
     ImageTexture tex;
+    std::discrete_distribution<unsigned int> dist_y;
+    std::vector<std::discrete_distribution<unsigned int>> dist_cond;
+    std::mt19937 gen;
 };
 #endif

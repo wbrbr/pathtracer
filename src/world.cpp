@@ -81,7 +81,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         auto light_inter = intersects(light_ray);
         if (!light_inter) {
             PDF* pdf_brdf = inter.material->getPDF(inter.normal);
-            Ld += fn(dir, envlight->emitted(dir)) / (p + pdf_brdf->value(dir));
+            Ld += fn(dir, envlight->emitted(dir)) / (p);
             delete pdf_brdf;
         }
     } else {
@@ -104,7 +104,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     }
 
     // BRDF SAMPLING
-    PDF* pdf = inter.material->getPDF(inter.normal);
+    /* PDF* pdf = inter.material->getPDF(inter.normal);
     glm::vec3 dir = pdf->sample(); 
     float p = pdf->value(dir);
     glm::vec3 brdf = inter.material->eval(-ray.d, dir, inter.normal);
@@ -114,7 +114,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     // visibility check
     if ((unsigned)light_id == lights.size()) {
         auto scene_inter = intersects(light_ray);
-        float light_pdf = glm::dot(light_ray.d, inter.normal) * M_1_PI;
+        // float light_pdf = glm::dot(light_ray.d, inter.normal) * M_1_PI;
         if (!scene_inter) Ld += fn(dir, envlight->emitted(dir)) / (p + light_pdf);
     } else {
         auto light_inter = lights[light_id]->intersects(light_ray);
@@ -129,7 +129,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             }
         }
     }
-    delete pdf;
+    delete pdf; */
 
     return Ld * (float)n;
 }

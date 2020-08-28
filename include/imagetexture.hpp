@@ -9,6 +9,9 @@ public:
     ImageTexture(std::string path);
     ~ImageTexture();
     glm::vec3 get(float u, float v);
+    glm::vec3 getPixel(unsigned x, unsigned y);
+    unsigned int width();
+    unsigned int height();
 
 private:
     unsigned int w, h;
