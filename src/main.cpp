@@ -24,7 +24,7 @@ using json = nlohmann::json;
 #endif
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 10000
+#define NUM_SAMPLES 100
 #define CLAMP_CONSTANT 100000.f
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
@@ -145,8 +145,8 @@ int main(int argc, char** argv) {
     float focal = .5f / tan(fov_y_rad/2.f);
 
     // World world = cornellBox();
-    // World world = suzanne();
-    World world = furnace();
+    World world = suzanne();
+    // World world = furnace();
 
 	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
     std::vector<glm::vec3> pixels;

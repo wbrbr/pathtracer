@@ -54,9 +54,9 @@ std::pair<glm::vec3, float> EnvLight::sampleDirection(glm::vec3 n)
     float p = px * py / pixel_area;
 
     float u = (float)x / (float)tex.width();
-    float v = (float)y / (float)tex.height();
+    float v = ((float)(tex.height() - 1 - y) + .5f ) / (float)tex.height();
 
-    float theta = (1.f - v) * M_PI;
+    float theta = v * M_PI;
     float phi = u * 2.f * M_PI;
     float cosTheta = std::cos(theta);
     float sinTheta = std::sin(theta);
@@ -81,10 +81,10 @@ glm::vec3 EnvLight::emitted(glm::vec3 dir)
     assert(phi >= 0);
     assert(phi < 1);
 
-    float theta = std::acos(dir.y) * M_1_PI;
+    float theta = std::acos(-dir.y) * M_1_PI;
     assert(theta >= 0);
     if (theta >= 1.) theta = 0.9999f;
     assert(theta < 1);
     
-    return tex.get(phi, theta);
+    return .5f * tex.get(phi, theta);
 }
