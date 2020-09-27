@@ -129,6 +129,14 @@ World furnace()
     return world;
 }
 
+World test()
+{
+    World world;
+    world.add(new Sphere(glm::vec3(0), .194f, new DiffuseMaterial(glm::vec3(.7, .7, .7))));
+    world.envlight = std::make_unique<EnvLight>("bg.hdr");
+    return world;
+}
+
 int main(int argc, char** argv) {
 #ifdef NANCHECK
     feenableexcept(FE_INVALID | FE_OVERFLOW);
@@ -140,15 +148,17 @@ int main(int argc, char** argv) {
     const int WIDTH = atoi(argv[1]);
     const int HEIGHT = atoi(argv[2]);
 
-    glm::vec3 cam_pos(0.f, 1.f, 4.f);
-    float fov_y_rad = 30.f * M_PI / 180.f;
-    float focal = .5f / tan(fov_y_rad/2.f);
+    // glm::vec3 cam_pos(0.f, 1.f, 4.f);
+    glm::vec3 cam_pos(0.f, 0.f, 1.f);
+    float fov_y_rad = 22.f * M_PI / 180.f;
 
     // World world = cornellBox();
-    World world = suzanne();
+    // World world = suzanne();
     // World world = furnace();
+    World world = test();
 
-	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
+	// Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
+	Camera cam(cam_pos, glm::vec3(0.f, 0.f, 0.f), fov_y_rad);
     std::vector<glm::vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
 
