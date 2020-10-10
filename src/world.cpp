@@ -81,7 +81,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         auto light_inter = intersects(light_ray);
         if (!light_inter) {
             PDF* pdf_brdf = inter.material->getPDF(inter.normal);
-            Ld += fn(dir, envlight->emitted(dir)) / (p);
+            glm::vec3 f = fn(dir, envlight->emitted(dir));
+            // std::cout << f.x << " : " << p << std::endl;
+            Ld += f / p;
             delete pdf_brdf;
         }
     } else {

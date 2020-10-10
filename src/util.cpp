@@ -37,6 +37,15 @@ glm::vec3 random_unit_disk()
 	return p;
 }
 
+glm::vec3 cosine_unit_hemisphere(glm::vec3 n)
+{
+    glm::vec3 disk = random_unit_disk();
+    auto basis = plane_onb_from_normal(n);
+    float z = sqrt(1.f - disk.x * disk.x - disk.y * disk.y);
+    glm::vec3 v = disk.x * basis.first + disk.y * basis.second + z * n;
+    return v;
+}
+
 // Building an Orthonormal Basis, Revisited
 // http://jcgt.org/published/0006/01/01/paper.pdf
 std::pair<glm::vec3, glm::vec3> plane_onb_from_normal(glm::vec3 n)

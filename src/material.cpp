@@ -73,18 +73,11 @@ float GGXG(glm::vec3 v, glm::vec3 l, glm::vec3 n, float alpha)
 
 glm::vec3 MetalMaterial::eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n)
 {
-    // maybe need to use sign()...
     glm::vec3 hr = glm::normalize(wi + wo);
 
-    //return GGXD(hr, n, alpha) * albedo;
-    // return GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
+    assert(dot(wi, n) >= 0.);
+    assert(dot(wo, n) >= 0.);
     return GGXF(wi, hr) * GGXG(wi, wo, n, alpha) * GGXD(hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
-    // return GGXD(wo, hr, n, alpha) * 0.25f / (dot(wi, n) * dot(wo, n)) * albedo;
-    /* #pragma once
-    plot("ggxd.data", [](float t){ return GGXD(t, 0.04); }, 0.f, 0.2f, 0.001f); */
-
-    //return GGXD(dot(n, hr), alpha) * albedo;
-    //return dot(n, hr) * albedo;
 }
 
 EmissionMaterial::EmissionMaterial(glm::vec3 emission)

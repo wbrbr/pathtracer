@@ -10,7 +10,14 @@
 class EnvLight
 {
 public:
-    EnvLight(std::string path);
+    virtual std::pair<glm::vec3, float> sampleDirection(glm::vec3 n) = 0;
+    virtual glm::vec3 emitted(glm::vec3 dir) = 0;
+};
+
+class HDREnvLight: public EnvLight
+{
+public:
+    HDREnvLight(std::string path);
     std::pair<glm::vec3, float> sampleDirection(glm::vec3 n);
     glm::vec3 emitted(glm::vec3 dir);
 
@@ -19,5 +26,15 @@ private:
     std::discrete_distribution<unsigned int> dist_y;
     std::vector<std::discrete_distribution<unsigned int>> dist_cond;
     std::mt19937 gen;
+};
+
+class ConstantEnvLight: public EnvLight {
+public:
+    ConstantEnvLight(glm::vec3 color);
+    std::pair<glm::vec3, float> sampleDirection(glm::vec3 n);
+    glm::vec3 emitted(glm::vec3 dir);
+
+private:
+    glm::vec3 color;
 };
 #endif
