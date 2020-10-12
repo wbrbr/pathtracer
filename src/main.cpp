@@ -6,6 +6,7 @@
 #include <vector>
 #include <random>
 #include <mutex>
+#include <utility>
 #include <cassert>
 #include "ray.hpp"
 #include "sphere.hpp"
@@ -107,33 +108,40 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
 World suzanne()
 {
     World world;
-    // loadObj("meshes/suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
-    world.add(new Sphere(glm::vec3(0., 1., 0.), 1., new DiffuseMaterial(glm::vec3(1., 1.,1.))));
-    world.envlight = std::make_unique<EnvLight>("bg.hdr");
+    loadObj("meshes/suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
+    // world.add(new Sphere(glm::vec3(0., 1., 0.), 1., new DiffuseMaterial(glm::vec3(1., 1.,1.))));
+    world.envlight = std::make_unique<HDREnvLight>("bg.hdr");
     return world;
 }
 
-World cornellBox()
+std::pair<World, Camera> cornellBox()
 {
     World world;
     loadObj("meshes/cornell.obj", &world, new DiffuseMaterial(glm::vec3(.7, .7, .7)));
-    world.envlight = std::make_unique<EnvLight>("bg.hdr");
-    return world;
+    world.envlight = nullptr;
+    // world.envlight = std::make_unique<EnvLight>("bg.hdr");
+    glm::vec3 cam_pos(0.f, 1.f, 4.f);
+	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), 30.f * M_PI / 180.f);
+    // return std::make_pair(world, cam);
+    return std::make_pair(std::move(world), cam);
 }
 
-World furnace()
+std::pair<World, Camera> furnace()
 {
     World world;
-    world.add(new Sphere(glm::vec3(0., 1., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
-    world.envlight = std::make_unique<EnvLight>("bg.hdr");
-    return world;
+    world.add(new Sphere(glm::vec3(0., 0., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
+    // world.add(new Sphere(glm::vec3(0., 1., 0.), .5f, new MetalMaterial(glm::vec3(1., 1., 1.), .5)));
+    // world.envlight = std::make_unique<EnvLight>("bg.hdr");
+    world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(.6, .6, .6));
+    Camera cam(glm::vec3(0., 0., 3.), glm::vec3(0., 0., 0.), 30.f * M_PI / 180.);
+    return std::make_pair(std::move(world), cam);
 }
 
 World test()
 {
     World world;
     world.add(new Sphere(glm::vec3(0), .194f, new DiffuseMaterial(glm::vec3(.7, .7, .7))));
-    world.envlight = std::make_unique<EnvLight>("bg.exr");
+    world.envlight = std::make_unique<HDREnvLight>("bg.hdr");
     return world;
 }
 
@@ -148,17 +156,17 @@ int main(int argc, char** argv) {
     const int WIDTH = atoi(argv[1]);
     const int HEIGHT = atoi(argv[2]);
 
-    // glm::vec3 cam_pos(0.f, 1.f, 4.f);
     glm::vec3 cam_pos(0.f, 0.f, 1.f);
     float fov_y_rad = 22.f * M_PI / 180.f;
 
-    // World world = cornellBox();
+    // auto [world, cam] = cornellBox();
+    auto [world, cam] = furnace();
     // World world = suzanne();
     // World world = furnace();
-    World world = test();
+    // World world = test();
 
-	// Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), focal);
-	Camera cam(cam_pos, glm::vec3(0.f, 0.f, 0.f), fov_y_rad);
+	// Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), fov_y_rad);
+	// Camera cam(cam_pos, glm::vec3(0.f, 0.f, 0.f), fov_y_rad);
     std::vector<glm::vec3> pixels;
 	pixels.resize(WIDTH * HEIGHT);
 

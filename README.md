@@ -1,7 +1,7 @@
 # pathtracer
 A simple path tracer in C++
 
-![Path traced suzanne](https://wbrbr.org/res/img/cornell_box.png)
+![Path traced suzanne](https://i.imgur.com/zU0IdyS.png)
 ## Features
 
 - Next-event estimation using Multiple Importance Sampling

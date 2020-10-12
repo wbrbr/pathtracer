@@ -11,7 +11,7 @@ float luminance(glm::vec3 c)
     return 0.212671f*c.r + 0.715160f*c.g + 0.072169f*c.b;
 }
 
-EnvLight::EnvLight(std::string path): tex(path)
+HDREnvLight::HDREnvLight(std::string path): tex(path)
 {
     std::vector<float> p_y, p_cond;
 
@@ -41,7 +41,7 @@ EnvLight::EnvLight(std::string path): tex(path)
     }
 }
 
-std::pair<glm::vec3, float> EnvLight::sampleDirection(glm::vec3 n)
+std::pair<glm::vec3, float> HDREnvLight::sampleDirection(glm::vec3 n)
 {
     unsigned int y = dist_y(gen);
     unsigned int x = dist_cond.at(y)(gen);
@@ -73,7 +73,7 @@ std::pair<glm::vec3, float> EnvLight::sampleDirection(glm::vec3 n)
     return std::make_pair(v, z * M_1_PI); */
 }
 
-glm::vec3 EnvLight::emitted(glm::vec3 dir)
+glm::vec3 HDREnvLight::emitted(glm::vec3 dir)
 {
     float phi = std::atan2(dir.z, dir.x) * .5f * M_1_PI;
     if (phi < 0) phi = std::min(0.9999f, phi+1.f);
@@ -87,4 +87,17 @@ glm::vec3 EnvLight::emitted(glm::vec3 dir)
     assert(theta < 1);
     
     return .5f * tex.get(phi, theta);
+}
+
+ConstantEnvLight::ConstantEnvLight(glm::vec3 color): color(color) {}
+
+std::pair<glm::vec3, float> ConstantEnvLight::sampleDirection(glm::vec3 n)
+{
+    glm::vec3 v = cosine_unit_hemisphere(n);
+    return std::make_pair(v, fmax(0., dot(n, v)) * M_1_PI);
+}
+
+glm::vec3 ConstantEnvLight::emitted(glm::vec3 dir)
+{
+    return color;
 }
