@@ -1,25 +1,49 @@
 #include "imagetexture.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define TINYEXR_IMPLEMENTATION
+#include "tinyexr.h"
 #include <iostream>
+#include <filesystem>
 
 ImageTexture::ImageTexture(std::string path)
 {
-    stbi_set_flip_vertically_on_load(1);
-    int x, y, n;
-    float* buf = stbi_loadf(path.c_str(), &x, &y, &n, 3);
-    if (buf == nullptr) {
-        std::cerr << stbi_failure_reason() << std::endl;
-        exit(1);
+    std::cout << "coucou" << std::endl;
+    std::string ext = std::filesystem::path(path).extension();
+    if (ext == ".hdr") {
+        stbi_set_flip_vertically_on_load(1);
+        int x, y, n;
+        float* buf = stbi_loadf(path.c_str(), &x, &y, &n, 3);
+        if (buf == nullptr) {
+            std::cerr << stbi_failure_reason() << std::endl;
+            exit(1);
+        }
+        w = (unsigned)x;
+        h = (unsigned)y;
+        data = reinterpret_cast<glm::vec3*>(buf);
+    } else if (ext == ".exr") {
+        
+        const char **layer_names;
+        int num_layers;
+        const char* err;
+        int ret = EXRLayers(path.c_str(), &layer_names, &num_layers, &err);
+        if (ret != TINYEXR_SUCCESS) fprintf(stderr, "%s\n", err);
+        std::cout << num_layers << std::endl;
+        assert(num_layers > 0);
+        float* buf;
+        int x, y;
+        ret = LoadEXRWithLayer(&buf, &x, &y, path.c_str(), layer_names[0], &err);
+        if (ret != TINYEXR_SUCCESS) fprintf(stderr, "%s\n", err);
+        w = (unsigned)x;
+        h = (unsigned)y;
+        data = reinterpret_cast<glm::vec3*>(buf);
     }
-    w = (unsigned)x;
-    h = (unsigned)y;
-    data = reinterpret_cast<glm::vec3*>(buf);
 }
 
 ImageTexture::~ImageTexture()
 {
-    stbi_image_free(data);
+    // stbi_image_free(data);
+    free(data);
 }
 
 glm::vec3 ImageTexture::get(float u, float v)

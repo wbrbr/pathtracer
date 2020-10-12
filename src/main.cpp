@@ -24,7 +24,7 @@ using json = nlohmann::json;
 #endif
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 100
+#define NUM_SAMPLES 4
 #define CLAMP_CONSTANT 100000.f
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
@@ -133,7 +133,7 @@ World test()
 {
     World world;
     world.add(new Sphere(glm::vec3(0), .194f, new DiffuseMaterial(glm::vec3(.7, .7, .7))));
-    world.envlight = std::make_unique<EnvLight>("bg.hdr");
+    world.envlight = std::make_unique<EnvLight>("bg.exr");
     return world;
 }
 
