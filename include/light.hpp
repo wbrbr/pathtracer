@@ -9,6 +9,7 @@
 
 class EnvLight {
 public:
+    virtual ~EnvLight() {};
     virtual std::pair<glm::vec3, float> sampleDirection(glm::vec3 n) = 0;
     virtual glm::vec3 emitted(glm::vec3 dir) = 0;
 };

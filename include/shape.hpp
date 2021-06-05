@@ -20,6 +20,7 @@ struct IntersectionData {
 
 class Shape {
 public:
+    virtual ~Shape() {};
     // virtual Box boundingBox() = 0;
     virtual std::optional<IntersectionData> intersects(Ray ray) = 0;
 };

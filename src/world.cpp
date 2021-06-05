@@ -14,7 +14,7 @@ World::World()
 
 void World::add(std::unique_ptr<Shape> s)
 {
-    shapes.push_back(s);
+    shapes.push_back(std::move(s));
 }
 
 void World::addLight(Triangle tri)

@@ -135,21 +135,18 @@ int main(int argc, char** argv)
     feenableexcept(FE_INVALID | FE_OVERFLOW);
 #endif
     if (argc < 4) {
-        fprintf(stderr, "Usage: %s <width> <height> <out>", argv[0]);
+        fprintf(stderr, "Usage: %s <pbrt file> <width> <height> <out>", argv[0]);
         return 1;
     }
-    const int WIDTH = atoi(argv[1]);
-    const int HEIGHT = atoi(argv[2]);
+    const int WIDTH = atoi(argv[2]);
+    const int HEIGHT = atoi(argv[3]);
 
+    std::string path(argv[1]);
     
-
-    glm::vec3 cam_pos(0.f, 0.f, 1.f);
-    float fov_y_rad = 22.f * M_PI / 180.f;
-
     //auto pair = cornellBox();
     //auto pair = furnace();
     //auto pair = suzanne();
-    auto pair = parsePbrt("cornell-box/scene.pbrt");
+    auto pair = parsePbrt(path);
     World world = std::move(pair.first);
     Camera cam = std::move(pair.second);
     // World world = suzanne();
@@ -186,5 +183,5 @@ int main(int argc, char** argv)
     }
 
     //write_png(argv[3], WIDTH, HEIGHT, pixels.data());
-    stbi_write_hdr(argv[3], WIDTH, HEIGHT, 3, (float*)pixels.data());
+    stbi_write_hdr(argv[4], WIDTH, HEIGHT, 3, (float*)pixels.data());
 }
