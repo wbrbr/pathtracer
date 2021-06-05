@@ -17,7 +17,7 @@ void World::add(Shape* s)
     shapes.push_back(s);
 }
 
-void World::addLight(Triangle* tri)
+void World::addLight(Triangle tri)
 {
     lights.push_back(tri);
 }
@@ -50,12 +50,12 @@ std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
     assert(lights.size() > 0);
     int light_id = random_int(0, lights.size() - 1);
 
-    glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
+    glm::vec3 point = uniformSampleTriangle(lights[light_id]);
     glm::vec3 v = point - p;
     glm::vec3 dir = glm::normalize(v);
 
-    float area = lights[light_id]->area();
-    float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
+    float area = lights[light_id].area();
+    float cos = fabs(glm::dot(lights[light_id].normal(), -dir));
     float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
     return std::make_pair(point, pdf);
 }
@@ -90,20 +90,20 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             delete pdf_brdf;
         }
     } else {
-        glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
+        glm::vec3 point = uniformSampleTriangle(lights[light_id]);
         glm::vec3 v = point - ray.at(inter.t);
         glm::vec3 dir = glm::normalize(v);
 
         Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
         auto light_inter = intersects(light_ray);
 
-        if (light_inter && light_inter->t >= glm::length(v) - 0.001 && glm::dot(lights[light_id]->normal(), -dir) > 0) {
-            float area = lights[light_id]->area();
-            float cos = fabs(glm::dot(lights[light_id]->normal(), -dir));
+        if (light_inter && light_inter->t >= glm::length(v) - 0.001 && glm::dot(lights[light_id].normal(), -dir) > 0) {
+            float area = lights[light_id].area();
+            float cos = fabs(glm::dot(lights[light_id].normal(), -dir));
             float p = glm::length2(v) / (area * cos);
 
             PDF* pdf_brdf = inter.material->getPDF(inter.normal);
-            Ld += fn(dir, lights[light_id]->mat->emitted()) / (p + pdf_brdf->value(dir));
+            Ld += fn(dir, lights[light_id].mat->emitted()) / (p + pdf_brdf->value(dir));
             delete pdf_brdf;
         }
     }

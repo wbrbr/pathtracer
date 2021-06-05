@@ -272,7 +272,7 @@ void loadObj(std::string path, World* world, Material* mat)
             }
             tm->root.triangles.push_back(triangle);
             if (is_light)
-                world->addLight(tm->root.triangles.data() + tm->root.triangles.size() - 1);
+                world->addLight(tm->root.triangles[tm->root.triangles.size()-1]);
         }
 
         buildBVHNode(&tm->root);

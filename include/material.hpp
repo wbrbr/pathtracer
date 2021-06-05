@@ -10,6 +10,7 @@ struct ScatterData {
     std::optional<Ray> scattered;
 };
 
+// TODO: material = BSDF + emission
 class Material {
 public:
     // virtual ScatterData scatter(Ray ray, IntersectionData inter) = 0;

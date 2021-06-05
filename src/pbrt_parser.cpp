@@ -4,28 +4,58 @@
 #include "sphere.hpp"
 #include <glm/gtx/string_cast.hpp>
 
+// TODO: stop the memory leaks (use unique_ptr to store the shapes and materials in world)
+
+Material* convertMaterial(pbrt::Material::SP in_mat) {
+    // TODO: handle textures
+    // TODO: don't leak memory
+    if (in_mat->as<pbrt::MatteMaterial>()) {
+        pbrt::MatteMaterial::SP matte = in_mat->as<pbrt::MatteMaterial>();
+        return new DiffuseMaterial(glm::vec3(matte->kd.x, matte->kd.y, matte->kd.z));
+    } else {
+        return new DiffuseMaterial(glm::vec3(1.f, 0.f, 1.f));
+    }
+}
+
+glm::vec3 convertVec3(pbrt::vec3f v) {
+    return glm::vec3(v.x, v.y, v.z);
+}
+
 std::pair<World, Camera> parsePbrt(std::string path)
 {
     pbrt::Scene::SP scene = pbrt::importPBRT(path);
     
-    // everything becomes an instance
-    //scene->makeSingleLevel();
-
     pbrt::Object::SP obj = scene->world;
 
     DiffuseMaterial* mat = new DiffuseMaterial(glm::vec3(.7f, .7f, .7f));
 
     World world;
-    world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(1.f, 1.f, 1.f));
+
     for (const pbrt::Shape::SP& shape : obj->shapes) {
         if (shape->as<pbrt::TriangleMesh>()) {
             pbrt::TriangleMesh::SP in_tm = shape->as<pbrt::TriangleMesh>();
-
             TriangleMesh* tm = new TriangleMesh;
 
             for (pbrt::vec3f v : in_tm->vertex) {
                 tm->vertices.push_back(glm::vec3(v.x, v.y, v.z));
             }
+
+            pbrt::Material::SP in_mat = in_tm->material;
+
+            Material* material;
+
+            // TODO: not mutually exclusive
+            if (in_tm->areaLight) {
+                pbrt::DiffuseAreaLightRGB::SP diffuseAreaLight = in_tm->areaLight->as<pbrt::DiffuseAreaLightRGB>();
+                if (!diffuseAreaLight) {
+                    std::cerr << "blackbody area lights are not suppported" << std::endl;
+                    material = new EmissionMaterial(glm::vec3(1.f,1.f,1.f));
+                }
+                material = new EmissionMaterial(convertVec3(diffuseAreaLight->L));
+            } else {
+                material = convertMaterial(in_mat);
+            }
+            
 
             for (pbrt::vec3i i : in_tm->index) {
                 Triangle tri;
@@ -33,10 +63,16 @@ std::pair<World, Camera> parsePbrt(std::string path)
                 tri.i0 = i.x;
                 tri.i1 = i.y;
                 tri.i2 = i.z;
-                tri.mat = mat;
+                tri.mat = material;
                 tm->root.triangles.push_back(tri);
             }
-            std::cout << tm->root.triangles.size() << std::endl;
+
+            if (in_tm->areaLight) {
+                for (const Triangle& triangle : tm->root.triangles) {
+                    world.addLight(triangle);
+                }
+            }
+
             buildBVHNode(&tm->root);
             world.add(tm);
         }
