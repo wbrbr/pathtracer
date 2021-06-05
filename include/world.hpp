@@ -14,7 +14,7 @@ public:
     World();
 
     ShapeID add(std::unique_ptr<Shape> shape);
-    void addLight(Triangle tri);
+    void addLight(std::unique_ptr<Light> light);
     MaterialID addMaterial(std::unique_ptr<Material> material);
     std::optional<IntersectionData> intersects(Ray ray);
     std::pair<glm::vec3, float> sampleLights(glm::vec3 p);
@@ -31,6 +31,8 @@ private:
     std::vector<std::unique_ptr<Material>> materials;
 
     // make this an index into the shapes array
-    std::vector<Triangle> lights;
+    std::vector<std::unique_ptr<Light>> lights;
+
+    bool isOccluded(glm::vec3 from, glm::vec3 to, Light* light);
 };
 #endif

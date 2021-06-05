@@ -200,6 +200,7 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
     {
         IntersectionData inter;
         inter.t = t;
+        inter.p = ray.at(inter.t);
         inter.normal = glm::normalize(glm::cross(edge1, edge2)); // TODO: cache triangle normal
         if (glm::dot(-ray.d, inter.normal) < 0)
             inter.normal *= -1.f;

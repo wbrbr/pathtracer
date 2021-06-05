@@ -18,9 +18,9 @@ MaterialID World::add(std::unique_ptr<Shape> s)
     return (int)(shapes.size() - 1);
 }
 
-void World::addLight(Triangle tri)
+void World::addLight(std::unique_ptr<Light> light)
 {
-    lights.push_back(tri);
+    lights.push_back(std::move(light));
 }
 
 MaterialID World::addMaterial(std::unique_ptr<Material> material)
@@ -52,6 +52,7 @@ std::optional<IntersectionData> World::intersects(Ray ray)
     return closest;
 }
 
+#if 0
 std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
 {
     assert(lights.size() > 0);
@@ -66,7 +67,19 @@ std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
     float pdf = glm::length2(v) / ((float)lights.size() * area * cos);
     return std::make_pair(point, pdf);
 }
+#endif
 
+bool World::isOccluded(glm::vec3 from, glm::vec3 to, Light* light) {
+    // Point light only
+    Ray shadow_ray = Ray::from_to(from, to);
+    auto inter = intersects(shadow_ray);
+    if (inter) {
+        return inter->t * inter->t < glm::distance2(from, to);
+    } else {
+        return false;
+    }
+}
+    
 glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 {
     unsigned int n = lights.size();
@@ -97,7 +110,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             delete pdf_brdf;
         }
     } else {
-        glm::vec3 point = uniformSampleTriangle(lights[light_id]);
+        /* glm::vec3 point = uniformSampleTriangle(lights[light_id]);
         glm::vec3 v = point - ray.at(inter.t);
         glm::vec3 dir = glm::normalize(v);
 
@@ -111,6 +124,18 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 
             PDF* pdf_brdf = mat->getPDF(inter.normal);
             Ld += fn(dir, getMaterial(lights[light_id].mat)->emitted()) / (p + pdf_brdf->value(dir));
+            delete pdf_brdf;
+        } */
+        glm::vec3 from = ray.at(inter.t);
+
+        float p;
+        glm::vec3 emitted;
+        glm::vec3 lightSample = lights[light_id]->samplePosition(inter, p, emitted);
+        glm::vec3 dir = lightSample - from;
+        
+        if (glm::dot(inter.normal, dir) >= 0 && !isOccluded(from, lightSample, lights[light_id].get())) {
+            PDF* pdf_brdf = mat->getPDF(inter.normal);
+            Ld += fn(dir, emitted) / (p + pdf_brdf->value(dir));
             delete pdf_brdf;
         }
     }

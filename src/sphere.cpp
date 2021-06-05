@@ -25,7 +25,8 @@ std::optional<IntersectionData> Sphere::intersects(Ray ray)
             if (inter.t <= 0.f)
                 return {};
         }
-        inter.normal = normal(ray.at(inter.t));
+        inter.p = ray.at(inter.t);
+        inter.normal = normal(inter.p);
         return inter;
     } else {
         return {};

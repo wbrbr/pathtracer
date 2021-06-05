@@ -65,16 +65,27 @@ std::pair<World, Camera> parsePbrt(std::string path)
                 tm->root.triangles.push_back(tri);
             }
 
-            if (in_tm->areaLight) {
+            /* if (in_tm->areaLight) {
                 for (const Triangle& triangle : tm->root.triangles) {
                     world.addLight(triangle);
                 }
-            }
+            } */
 
             buildBVHNode(&tm->root);
             world.add(std::move(tm));
         }
     }
+
+    for (const pbrt::LightSource::SP& light : obj->lightSources) {
+        if (light->as<pbrt::PointLightSource>()) {
+            pbrt::PointLightSource::SP in_point_light = light->as<pbrt::PointLightSource>();
+            std::cout << "POINT LIGHT" << std::endl;
+            // incorrect
+            world.addLight(std::make_unique<PointLight>(convertVec3(in_point_light->from), convertVec3(in_point_light->I)));
+        }
+    }
+
+    //world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(.5f, .6f, .7f));
 
     pbrt::Camera::SP in_cam = scene->cameras[0];
     glm::vec3 cam_pos(in_cam->frame.p.x, in_cam->frame.p.y, in_cam->frame.p.z);

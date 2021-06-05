@@ -11,19 +11,18 @@
 class Light {
 public:
     virtual ~Light() = default;
-    virtual glm::vec3 sampleDirection(const IntersectionData& inter, float& pdf) = 0;
-    virtual glm::vec3 emitted(glm::vec3 dir) = 0;
+    virtual glm::vec3 samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) = 0;
 };
 
 class PointLight: public Light {
 public:
-    PointLight(glm::vec3 Le);
+    PointLight(glm::vec3 location, glm::vec3 irradiance);
     virtual ~PointLight() = default;
-    virtual glm::vec3 sampleDirection(const IntersectionData& inter, float& pdf) override;
-    virtual glm::vec3 emitted(glm::vec3 dir) override;
+    virtual glm::vec3 samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) override;
 
 private:
-    glm::vec3 Le;
+    glm::vec3 location;
+    glm::vec3 irradiance;
 };
 
 class EnvLight {

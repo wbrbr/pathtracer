@@ -12,6 +12,7 @@ struct IntersectionData {
     float t;
     glm::vec3 normal;
     MaterialID material;
+    glm::vec3 p;
 
     IntersectionData()
     {
