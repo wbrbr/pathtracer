@@ -69,17 +69,21 @@ std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
 }
 #endif
 
-bool World::isOccluded(glm::vec3 from, glm::vec3 to, Light* light) {
-    // Point light only
+bool World::isOccluded(glm::vec3 from, glm::vec3 to, Light* light)
+{
     Ray shadow_ray = Ray::from_to(from, to);
     auto inter = intersects(shadow_ray);
-    if (inter) {
-        return inter->t * inter->t < glm::distance2(from, to);
-    } else {
+
+    if (!inter)
         return false;
+
+    if (light->isDirectionalLight()) {
+        return true;
+    } else {
+        return inter->t * inter->t < glm::distance2(from, to);
     }
 }
-    
+
 glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 {
     unsigned int n = lights.size();
@@ -130,7 +134,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         glm::vec3 emitted;
         glm::vec3 lightSample = lights[light_id]->samplePosition(inter, p, emitted);
         glm::vec3 dir = lightSample - from;
-        
+
         if (glm::dot(inter.normal, dir) >= 0 && !isOccluded(from + 0.0001f * inter.normal, lightSample, lights[light_id].get())) {
             Ld += fn(dir, emitted) / p;
         }
@@ -167,6 +171,7 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     return Ld * (float)n;
 }
 
-Material* World::getMaterial(MaterialID id) {
+Material* World::getMaterial(MaterialID id)
+{
     return materials[id].get();
 }

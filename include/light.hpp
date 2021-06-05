@@ -12,6 +12,9 @@ class Light {
 public:
     virtual ~Light() = default;
     virtual glm::vec3 samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) = 0;
+    virtual bool isDirectionalLight() {
+        return false;
+    }
 };
 
 class PointLight : public Light {
@@ -30,10 +33,11 @@ public:
     DirectionalLight(glm::vec3 direction, glm::vec3 radiance);
     virtual ~DirectionalLight() = default;
     virtual glm::vec3 samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) override;
+    virtual bool isDirectionalLight() override;
 
 private:
     glm::vec3 direction;
-    glm::vec3 irradiance;
+    glm::vec3 radiance;
 };
 
 class EnvLight {

@@ -1,12 +1,13 @@
 #include "pbrt_parser.hpp"
-#include "pbrtParser/Scene.h"
 #include "material.hpp"
+#include "pbrtParser/Scene.h"
 #include "sphere.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 // TODO: stop the memory leaks (use unique_ptr to store the shapes and materials in world)
 
-std::unique_ptr<Material> convertMaterial(pbrt::Material::SP in_mat) {
+std::unique_ptr<Material> convertMaterial(pbrt::Material::SP in_mat)
+{
     // TODO: handle textures
     // TODO: don't leak memory
     if (in_mat->as<pbrt::MatteMaterial>()) {
@@ -17,14 +18,15 @@ std::unique_ptr<Material> convertMaterial(pbrt::Material::SP in_mat) {
     }
 }
 
-glm::vec3 convertVec3(pbrt::vec3f v) {
+glm::vec3 convertVec3(pbrt::vec3f v)
+{
     return glm::vec3(v.x, v.y, v.z);
 }
 
 std::pair<World, Camera> parsePbrt(std::string path)
 {
     pbrt::Scene::SP scene = pbrt::importPBRT(path);
-    
+
     pbrt::Object::SP obj = scene->world;
 
     World world;
@@ -53,7 +55,6 @@ std::pair<World, Camera> parsePbrt(std::string path)
             } else {
                 material = world.addMaterial(convertMaterial(in_mat));
             }
-            
 
             for (pbrt::vec3i i : in_tm->index) {
                 Triangle tri;
@@ -71,6 +72,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
                 }
             } */
 
+            std::cout << "Building BVH (" << tm->root.triangles.size() << " tris)" << std::endl;
             buildBVHNode(&tm->root);
             world.add(std::move(tm));
         }
@@ -79,8 +81,10 @@ std::pair<World, Camera> parsePbrt(std::string path)
     for (const pbrt::LightSource::SP& light : obj->lightSources) {
         if (light->as<pbrt::PointLightSource>()) {
             pbrt::PointLightSource::SP in_point_light = light->as<pbrt::PointLightSource>();
-            // incorrect
             world.addLight(std::make_unique<PointLight>(convertVec3(in_point_light->from), convertVec3(in_point_light->I)));
+        } else if (light->as<pbrt::DistantLightSource>()) {
+            pbrt::DistantLightSource::SP in_distant_light = light->as<pbrt::DistantLightSource>();
+            world.addLight(std::make_unique<DirectionalLight>(glm::normalize(convertVec3(in_distant_light->to - in_distant_light->from)), convertVec3(in_distant_light->L)));
         }
     }
 

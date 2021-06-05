@@ -75,18 +75,22 @@ std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHBuildNode
 
     std::vector<float> costs;
 
-    for (unsigned int i = 0; i < node->triangles.size(); i++) {
+    constexpr unsigned int nBuckets = 12;
+
+    for (unsigned int i = 1; i < nBuckets; i++) {
         Box b0;
         Box b1;
         unsigned int count0 = 0;
         unsigned int count1 = 0;
 
-        for (unsigned int j = 1; j < i; j++) {
+        unsigned int split = (node->triangles.size() * i) / nBuckets;
+
+        for (unsigned int j = 0; j < split; j++) {
             b0 = b0.add(node->triangles[j].boundingBox());
             count0++;
         }
 
-        for (unsigned int j = i; j < node->triangles.size(); j++) {
+        for (unsigned int j = split; j < node->triangles.size(); j++) {
             b1 = b1.add(node->triangles[j].boundingBox());
             count1++;
         }
@@ -95,6 +99,7 @@ std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHBuildNode
     }
 
     unsigned int min_index = std::min_element(costs.begin(), costs.end()) - costs.begin();
+    min_index = node->triangles.size() / 2;
     auto split = node->triangles.begin() + min_index;
 
     std::pair<std::vector<Triangle>, std::vector<Triangle>> res;
@@ -118,6 +123,7 @@ void buildBVHNode(BVHBuildNode* node)
     node->box = computeBoundingBox(node);
     if (node->triangles.size() > 3) {
         auto split = splitShapes(node);
+        //std::cerr << split.first.size() << "/" << split.second.size() << std::endl;
         node->left = new BVHBuildNode;
         node->left->triangles = split.first;
         node->right = new BVHBuildNode;

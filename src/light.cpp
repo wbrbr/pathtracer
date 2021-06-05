@@ -20,6 +20,23 @@ glm::vec3 PointLight::samplePosition(const IntersectionData& inter, float& pdf, 
     return location;
 }
 
+DirectionalLight::DirectionalLight(glm::vec3 direction, glm::vec3 radiance)
+    : direction(direction)
+    , radiance(radiance)
+{
+}
+
+glm::vec3 DirectionalLight::samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted)
+{
+    pdf = 1;
+    emitted = radiance;
+    return inter.p - direction;
+}
+
+bool DirectionalLight::isDirectionalLight() {
+    return true;
+}
+
 float luminance(glm::vec3 c)
 {
     return 0.212671f * c.r + 0.715160f * c.g + 0.072169f * c.b;
