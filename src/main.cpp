@@ -61,7 +61,6 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
 
             L += throughput * Ld;
 
-            assert(inter->material != nullptr);
             PDF* pdf = mat->getPDF(inter->normal);
 
             glm::vec3 new_dir = pdf->sample();

@@ -13,6 +13,7 @@ struct ScatterData {
 // TODO: material = BSDF + emission
 class Material {
 public:
+    virtual ~Material() = default;
     // virtual ScatterData scatter(Ray ray, IntersectionData inter) = 0;
     virtual PDF* getPDF(glm::vec3 n) = 0;
     virtual glm::vec3 eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n) = 0;
