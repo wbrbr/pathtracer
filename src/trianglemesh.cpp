@@ -217,6 +217,10 @@ TriangleMesh::TriangleMesh()
 {
 }
 
+void TriangleMesh::buildBVH()
+{
+}
+
 void loadObj(std::string path, World* world, Material* mat)
 {
     tinyobj::ObjReaderConfig config;

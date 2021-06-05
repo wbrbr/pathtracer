@@ -16,9 +16,8 @@
 #include "camera.hpp"
 #include "pdf.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "json.hpp"
-using json = nlohmann::json;
 #include "glm/gtx/string_cast.hpp"
+#include "pbrt_parser.hpp"
 
 #ifdef NANCHECK
 #include <fenv.h>
@@ -155,6 +154,8 @@ int main(int argc, char** argv) {
     }
     const int WIDTH = atoi(argv[1]);
     const int HEIGHT = atoi(argv[2]);
+
+    parsePbrt("/home/wilhem/Downloads/cornell-box/scene.pbrt");
 
     glm::vec3 cam_pos(0.f, 0.f, 1.f);
     float fov_y_rad = 22.f * M_PI / 180.f;

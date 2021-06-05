@@ -47,6 +47,9 @@ class TriangleMesh: public Shape
 public:
 	//TriangleMesh( Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices);
     TriangleMesh();
+    void buildBVH();
+
+
 	std::optional<IntersectionData> intersects(Ray ray);
 	glm::vec3 getVertex(int i);
 
