@@ -36,8 +36,14 @@ std::pair<World, Camera> parsePbrt(std::string path)
             pbrt::TriangleMesh::SP in_tm = shape->as<pbrt::TriangleMesh>();
             auto tm = std::make_unique<TriangleMesh>();
 
+            tm->vertices.reserve(in_tm->vertex.size());
             for (pbrt::vec3f v : in_tm->vertex) {
-                tm->vertices.push_back(glm::vec3(v.x, v.y, v.z));
+                tm->vertices.push_back(convertVec3(v));
+            }
+
+            tm->normals.reserve(in_tm->normal.size());
+            for (pbrt::vec3f n : in_tm->normal) {
+                tm->normals.push_back(convertVec3(n));
             }
 
             pbrt::Material::SP in_mat = in_tm->material;

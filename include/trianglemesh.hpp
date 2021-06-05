@@ -14,7 +14,7 @@ public:
     Box boundingBox();
     std::optional<IntersectionData> intersects(Ray ray);
     float area();
-    glm::vec3 normal();
+    glm::vec3 normal(float u, float v);
 
     TriangleMesh* tm;
     int i0, i1, i2;
@@ -49,6 +49,7 @@ public:
     glm::vec3 getVertex(int i);
 
     std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
     BVHBuildNode root;
 };
 

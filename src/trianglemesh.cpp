@@ -168,13 +168,9 @@ float Triangle::area()
     return .5f * glm::length(glm::cross(v1 - v0, v2 - v0));
 }
 
-glm::vec3 Triangle::normal()
+glm::vec3 Triangle::normal(float u, float v)
 {
-    glm::vec3 v0 = tm->getVertex(i0);
-    glm::vec3 v1 = tm->getVertex(i1);
-    glm::vec3 v2 = tm->getVertex(i2);
-
-    return glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    return u * tm->normals[i0] + v * tm->normals[i1] + (1.f - u - v) * tm->normals[i2];
 }
 
 std::optional<IntersectionData> Triangle::intersects(Ray ray)
@@ -207,7 +203,7 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
         IntersectionData inter;
         inter.t = t;
         inter.p = ray.at(inter.t);
-        inter.normal = glm::normalize(glm::cross(edge1, edge2)); // TODO: cache triangle normal
+        inter.normal = normal(u, v);
         if (glm::dot(-ray.d, inter.normal) < 0)
             inter.normal *= -1.f;
         inter.material = mat;

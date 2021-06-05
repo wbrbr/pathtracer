@@ -56,6 +56,8 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
             mat = world.getMaterial(inter->material);
             if (i == 0)
                 L += throughput * mat->emitted();
+            
+            //return 0.5f * (inter->normal + glm::vec3(1.f));
 
             glm::vec3 Ld = world.directLighting(ray, *inter);
 
