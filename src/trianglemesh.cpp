@@ -243,7 +243,7 @@ void loadObj(std::string path, World* world, Material* mat)
     assert(shapes.size() > 0);
     for (unsigned int s = 0; s < shapes.size(); s++) {
         auto mesh = shapes[s].mesh;
-        TriangleMesh* tm = new TriangleMesh;
+        auto tm = std::make_unique<TriangleMesh>();
         tm->vertices = vertices;
         // we need this, otherwise the pointers in World::lights might be invalidated by
         // a reallocation for push_back
@@ -254,7 +254,7 @@ void loadObj(std::string path, World* world, Material* mat)
             triangle.i0 = mesh.indices[3 * i].vertex_index;
             triangle.i1 = mesh.indices[3 * i + 1].vertex_index;
             triangle.i2 = mesh.indices[3 * i + 2].vertex_index;
-            triangle.tm = tm;
+            triangle.tm = tm.get();
             bool is_light = false;
             int mat_id = mesh.material_ids[i];
             
@@ -276,7 +276,7 @@ void loadObj(std::string path, World* world, Material* mat)
         }
 
         buildBVHNode(&tm->root);
-        world->add(tm);
+        world->add(std::move(tm));
     }
     std::cout << "done" << std::endl;
 }

@@ -34,7 +34,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
     for (const pbrt::Shape::SP& shape : obj->shapes) {
         if (shape->as<pbrt::TriangleMesh>()) {
             pbrt::TriangleMesh::SP in_tm = shape->as<pbrt::TriangleMesh>();
-            TriangleMesh* tm = new TriangleMesh;
+            auto tm = std::make_unique<TriangleMesh>();
 
             for (pbrt::vec3f v : in_tm->vertex) {
                 tm->vertices.push_back(glm::vec3(v.x, v.y, v.z));
@@ -59,7 +59,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
 
             for (pbrt::vec3i i : in_tm->index) {
                 Triangle tri;
-                tri.tm = tm;
+                tri.tm = tm.get();
                 tri.i0 = i.x;
                 tri.i1 = i.y;
                 tri.i2 = i.z;
@@ -74,7 +74,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
             }
 
             buildBVHNode(&tm->root);
-            world.add(tm);
+            world.add(std::move(tm));
         }
     }
 

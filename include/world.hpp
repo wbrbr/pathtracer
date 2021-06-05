@@ -11,7 +11,8 @@
 class World {
 public:
     World();
-    void add(Shape* s);
+
+    void add(std::unique_ptr<Shape> shape);
     void addLight(Triangle tri);
     std::optional<IntersectionData> intersects(Ray ray);
     std::pair<glm::vec3, float> sampleLights(glm::vec3 p);
@@ -22,7 +23,7 @@ public:
 
 private:
     // TODO: use smart pointers instead ? (unique_ptr) or delete in destructor
-    std::vector<Shape*> shapes;
+    std::vector<std::unique_ptr<Shape>> shapes;
 
     // make this an index into the shapes array
     std::vector<Triangle> lights;

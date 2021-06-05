@@ -12,7 +12,7 @@ World::World()
     envlight = nullptr;
 }
 
-void World::add(Shape* s)
+void World::add(std::unique_ptr<Shape> s)
 {
     shapes.push_back(s);
 }
@@ -26,7 +26,7 @@ std::optional<IntersectionData> World::intersects(Ray ray)
 {
     std::vector<IntersectionData> inters;
 
-    for (Shape* s : shapes) {
+    for (auto& s : shapes) {
         auto inter = s->intersects(ray);
         if (inter)
             inters.push_back(*inter);
@@ -37,7 +37,7 @@ std::optional<IntersectionData> World::intersects(Ray ray)
 
     IntersectionData closest = inters[0];
 
-    for (IntersectionData inter : inters) {
+    for (const IntersectionData& inter : inters) {
         if (inter.t < closest.t)
             closest = inter;
     }

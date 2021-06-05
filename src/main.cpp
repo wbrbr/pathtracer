@@ -114,7 +114,7 @@ std::pair<World, Camera> furnace()
 {
     World world;
     // world.add(new Sphere(glm::vec3(0., 0., 0.), .5f, new DiffuseMaterial(glm::vec3(1., 1., 1.))));
-    world.add(new Sphere(glm::vec3(0., 0., 0.), .5f, new MetalMaterial(glm::vec3(1., 1., 1.), 1.)));
+    world.add(std::make_unique<Sphere>(glm::vec3(0., 0., 0.), .5f, new MetalMaterial(glm::vec3(1., 1., 1.), 1.)));
     // world.envlight = std::make_unique<EnvLight>("bg.hdr");
     world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(.6, .6, .6));
     Camera cam(glm::vec3(0., 0., 3.), glm::vec3(0., 0., 0.), 30.f * M_PI / 180.);
@@ -124,7 +124,7 @@ std::pair<World, Camera> furnace()
 World test()
 {
     World world;
-    world.add(new Sphere(glm::vec3(0), .194f, new DiffuseMaterial(glm::vec3(.7, .7, .7))));
+    world.add(std::make_unique<Sphere>(glm::vec3(0), .194f, new DiffuseMaterial(glm::vec3(.7, .7, .7))));
     world.envlight = std::make_unique<HDREnvLight>("bg.hdr");
     return world;
 }
