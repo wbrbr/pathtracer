@@ -3,6 +3,10 @@
 #include "glm/glm.hpp"
 #include "trianglemesh.hpp"
 #include <utility>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#define M_1_PI 0.318309886183790671538
+#endif
 
 glm::vec3 random_unit_sphere();
 glm::vec3 random_unit_hemisphere(glm::vec3 normal);

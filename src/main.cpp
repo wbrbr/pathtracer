@@ -24,7 +24,7 @@
 #endif
 
 #define NUM_BOUNCES 10
-#define NUM_SAMPLES 4
+#define NUM_SAMPLES 100
 #define CLAMP_CONSTANT 100000.f
 
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
@@ -87,37 +87,23 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
     return L;
 }
 
-/* glm::vec3 color(World world, Ray ray, int bounces)
-{
-    auto inter = world.intersects(ray);
-    if (inter) {
-        assert(inter->material != nullptr);
-        PDF* pdf = inter->material->getPDF(inter->normal);
-        glm::vec3 new_dir = pdf->sample();
-        // glm::vec3 new_dir(0.f, 0.f, 1.f);
-        glm::vec3 att = inter->material->eval(-ray.d, new_dir, inter->normal);
-        delete pdf;
-        return att;
-    } else {
-        return lerp(glm::vec3(1.f, 1.f, 1.f), glm::vec3(0.5f, 0.7f, 1.0), ray.d.y / 2.f + 0.5f);
-    }
-} */
 
-World suzanne()
+std::pair<World, Camera> suzanne()
 {
     World world;
-    loadObj("meshes/suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
+    loadObj("suzanne.obj", &world, new DiffuseMaterial(glm::vec3(.7, .4, .3)));
     // world.add(new Sphere(glm::vec3(0., 1., 0.), 1., new DiffuseMaterial(glm::vec3(1., 1.,1.))));
-    world.envlight = std::make_unique<HDREnvLight>("bg.hdr");
-    return world;
+    world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(.5f,.6f,.7f));
+    Camera cam(glm::vec3(0.f,0.f,4.f), glm::vec3(0.f, 0.f, 0.f), 30.f * M_PI / 180.f);
+    return std::make_pair(std::move(world), cam);
 }
 
 std::pair<World, Camera> cornellBox()
 {
     World world;
     loadObj("meshes/cornell.obj", &world, new DiffuseMaterial(glm::vec3(.7, .7, .7)));
-    world.envlight = nullptr;
-    // world.envlight = std::make_unique<EnvLight>("bg.hdr");
+    world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(1, 1, 1));
+    //world.envlight = std::make_unique<EnvLight>("bg.hdr");
     glm::vec3 cam_pos(0.f, 1.f, 4.f);
     Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), 30.f * M_PI / 180.f);
     // return std::make_pair(world, cam);
@@ -155,13 +141,15 @@ int main(int argc, char** argv)
     const int WIDTH = atoi(argv[1]);
     const int HEIGHT = atoi(argv[2]);
 
-    parsePbrt("/home/wilhem/Downloads/cornell-box/scene.pbrt");
+    
 
     glm::vec3 cam_pos(0.f, 0.f, 1.f);
     float fov_y_rad = 22.f * M_PI / 180.f;
 
-    // auto [world, cam] = cornellBox();
-    auto pair = furnace();
+    //auto pair = cornellBox();
+    //auto pair = furnace();
+    //auto pair = suzanne();
+    auto pair = parsePbrt("cornell-box/scene.pbrt");
     World world = std::move(pair.first);
     Camera cam = std::move(pair.second);
     // World world = suzanne();

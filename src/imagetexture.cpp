@@ -8,8 +8,7 @@
 
 ImageTexture::ImageTexture(std::string path)
 {
-    std::cout << "coucou" << std::endl;
-    std::string ext = std::filesystem::path(path).extension();
+    std::string ext = std::filesystem::path(path).extension().string();
     if (ext == ".hdr") {
         stbi_set_flip_vertically_on_load(1);
         int x, y, n;

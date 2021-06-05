@@ -55,5 +55,6 @@ public:
 
 class World;
 class Material;
+void buildBVHNode(BVHBuildNode* node);
 void loadObj(std::string path, World* world, Material* mat);
 #endif

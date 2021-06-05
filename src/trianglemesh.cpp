@@ -248,7 +248,6 @@ void loadObj(std::string path, World* world, Material* mat)
         // we need this, otherwise the pointers in World::lights might be invalidated by
         // a reallocation for push_back
         tm->root.triangles.reserve(mesh.num_face_vertices.size());
-        Material* metal = new MetalMaterial(glm::vec3(.8, .8, .8), .2);
         for (unsigned int i = 0; i < mesh.num_face_vertices.size(); i++) {
             assert(mesh.num_face_vertices[i] == 3);
             Triangle triangle;
@@ -258,9 +257,8 @@ void loadObj(std::string path, World* world, Material* mat)
             triangle.tm = tm;
             bool is_light = false;
             int mat_id = mesh.material_ids[i];
-            if (s == 0)
-                triangle.mat = metal;
-            else if (mat_id == -1) {
+            
+            if (mat_id == -1) {
                 triangle.mat = mat;
             } else {
                 tinyobj::material_t mtl = materials[mat_id];
