@@ -27,8 +27,6 @@ std::pair<World, Camera> parsePbrt(std::string path)
     
     pbrt::Object::SP obj = scene->world;
 
-    DiffuseMaterial* mat = new DiffuseMaterial(glm::vec3(.7f, .7f, .7f));
-
     World world;
 
     for (const pbrt::Shape::SP& shape : obj->shapes) {

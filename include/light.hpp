@@ -1,11 +1,30 @@
 #ifndef LIGHT_HPP
 #define LIGHT_HPP
 #include "imagetexture.hpp"
+#include "shape.hpp"
 #include <glm/vec3.hpp>
 #include <random>
 #include <string>
 #include <utility>
 #include <vector>
+
+class Light {
+public:
+    virtual ~Light() = default;
+    virtual glm::vec3 sampleDirection(const IntersectionData& inter, float& pdf) = 0;
+    virtual glm::vec3 emitted(glm::vec3 dir) = 0;
+};
+
+class PointLight: public Light {
+public:
+    PointLight(glm::vec3 Le);
+    virtual ~PointLight() = default;
+    virtual glm::vec3 sampleDirection(const IntersectionData& inter, float& pdf) override;
+    virtual glm::vec3 emitted(glm::vec3 dir) override;
+
+private:
+    glm::vec3 Le;
+};
 
 class EnvLight {
 public:

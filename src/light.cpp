@@ -6,6 +6,19 @@
 #include <iostream>
 #include <numeric>
 
+PointLight::PointLight(glm::vec3 Le)
+    : Le(Le) {}
+
+glm::vec3 PointLight::sampleDirection(const IntersectionData& inter, float& pdf) {
+    pdf = 0.25 * M_1_PI;
+    return random_unit_sphere();
+}
+
+glm::vec3 PointLight::emitted(glm::vec3 dir) {
+    (void)dir;
+    return Le;
+}
+
 float luminance(glm::vec3 c)
 {
     return 0.212671f * c.r + 0.715160f * c.g + 0.072169f * c.b;
