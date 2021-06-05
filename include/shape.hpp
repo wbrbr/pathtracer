@@ -3,6 +3,7 @@
 #include "box.hpp"
 #include "glm/mat4x4.hpp"
 #include "ray.hpp"
+#include "id_types.hpp"
 #include <optional>
 
 class Material;
@@ -10,17 +11,16 @@ class Material;
 struct IntersectionData {
     float t;
     glm::vec3 normal;
-    Material* material;
+    MaterialID material;
 
     IntersectionData()
     {
-        material = nullptr;
+        material = -1;
     }
 };
 
 class Shape {
 public:
-    virtual ~Shape() {};
     // virtual Box boundingBox() = 0;
     virtual std::optional<IntersectionData> intersects(Ray ray) = 0;
 };

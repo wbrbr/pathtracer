@@ -1,7 +1,7 @@
 #include "sphere.hpp"
 #include <cmath>
 
-Sphere::Sphere(glm::vec3 c, float r, Material* material)
+Sphere::Sphere(glm::vec3 c, float r, MaterialID material)
     : c(c)
     , r(r)
     , material(material)

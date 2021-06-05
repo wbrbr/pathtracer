@@ -18,7 +18,7 @@ public:
 
     TriangleMesh* tm;
     int i0, i1, i2;
-    Material* mat;
+    MaterialID mat;
 };
 
 struct BVHBuildNode {
@@ -44,7 +44,6 @@ class TriangleMesh : public Shape {
 public:
     //TriangleMesh( Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices);
     TriangleMesh();
-    void buildBVH();
 
     std::optional<IntersectionData> intersects(Ray ray);
     glm::vec3 getVertex(int i);
@@ -56,5 +55,4 @@ public:
 class World;
 class Material;
 void buildBVHNode(BVHBuildNode* node);
-void loadObj(std::string path, World* world, Material* mat);
 #endif

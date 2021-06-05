@@ -6,14 +6,14 @@
 
 // TODO: stop the memory leaks (use unique_ptr to store the shapes and materials in world)
 
-Material* convertMaterial(pbrt::Material::SP in_mat) {
+std::unique_ptr<Material> convertMaterial(pbrt::Material::SP in_mat) {
     // TODO: handle textures
     // TODO: don't leak memory
     if (in_mat->as<pbrt::MatteMaterial>()) {
         pbrt::MatteMaterial::SP matte = in_mat->as<pbrt::MatteMaterial>();
-        return new DiffuseMaterial(glm::vec3(matte->kd.x, matte->kd.y, matte->kd.z));
+        return std::make_unique<DiffuseMaterial>(glm::vec3(matte->kd.x, matte->kd.y, matte->kd.z));
     } else {
-        return new DiffuseMaterial(glm::vec3(1.f, 0.f, 1.f));
+        return std::make_unique<DiffuseMaterial>(glm::vec3(1.f, 0.f, 1.f));
     }
 }
 
@@ -42,18 +42,18 @@ std::pair<World, Camera> parsePbrt(std::string path)
 
             pbrt::Material::SP in_mat = in_tm->material;
 
-            Material* material;
+            MaterialID material = -1;
 
             // TODO: not mutually exclusive
             if (in_tm->areaLight) {
                 pbrt::DiffuseAreaLightRGB::SP diffuseAreaLight = in_tm->areaLight->as<pbrt::DiffuseAreaLightRGB>();
                 if (!diffuseAreaLight) {
                     std::cerr << "blackbody area lights are not suppported" << std::endl;
-                    material = new EmissionMaterial(glm::vec3(1.f,1.f,1.f));
+                    exit(1);
                 }
-                material = new EmissionMaterial(convertVec3(diffuseAreaLight->L));
+                material = world.addMaterial(std::make_unique<EmissionMaterial>(convertVec3(diffuseAreaLight->L)));
             } else {
-                material = convertMaterial(in_mat);
+                material = world.addMaterial(convertMaterial(in_mat));
             }
             
 

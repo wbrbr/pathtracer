@@ -12,14 +12,21 @@ World::World()
     envlight = nullptr;
 }
 
-void World::add(std::unique_ptr<Shape> s)
+MaterialID World::add(std::unique_ptr<Shape> s)
 {
     shapes.push_back(std::move(s));
+    return (int)(shapes.size() - 1);
 }
 
 void World::addLight(Triangle tri)
 {
     lights.push_back(tri);
+}
+
+MaterialID World::addMaterial(std::unique_ptr<Material> material)
+{
+    materials.push_back(std::move(material));
+    return (int)(materials.size() - 1);
 }
 
 std::optional<IntersectionData> World::intersects(Ray ray)
@@ -71,8 +78,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 
     glm::vec3 Ld(0.);
 
+    Material* mat = getMaterial(inter.material);
     // the function that we want to integrate
-    auto fn = [inter, ray, light_id, this](glm::vec3 dir, glm::vec3 emitted) { return std::abs(glm::dot(dir, inter.normal)) * inter.material->eval(-ray.d, dir, inter.normal) * emitted; };
+    auto fn = [inter, ray, light_id, mat, this](glm::vec3 dir, glm::vec3 emitted) { return std::abs(glm::dot(dir, inter.normal)) * mat->eval(-ray.d, dir, inter.normal) * emitted; };
 
     // LIGHT SAMPLING
     if ((unsigned)light_id == lights.size()) { // Sample environment lighting
@@ -83,9 +91,8 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
         auto light_inter = intersects(light_ray);
         if (!light_inter) {
-            PDF* pdf_brdf = inter.material->getPDF(inter.normal);
+            PDF* pdf_brdf = mat->getPDF(inter.normal);
             glm::vec3 f = fn(dir, envlight->emitted(dir));
-            // std::cout << f.x << " : " << p << std::endl;
             Ld += f / p;
             delete pdf_brdf;
         }
@@ -102,8 +109,8 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
             float cos = fabs(glm::dot(lights[light_id].normal(), -dir));
             float p = glm::length2(v) / (area * cos);
 
-            PDF* pdf_brdf = inter.material->getPDF(inter.normal);
-            Ld += fn(dir, lights[light_id].mat->emitted()) / (p + pdf_brdf->value(dir));
+            PDF* pdf_brdf = mat->getPDF(inter.normal);
+            Ld += fn(dir, getMaterial(lights[light_id].mat)->emitted()) / (p + pdf_brdf->value(dir));
             delete pdf_brdf;
         }
     }
@@ -137,4 +144,8 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
     delete pdf; */
 
     return Ld * (float)n;
+}
+
+Material* World::getMaterial(MaterialID id) {
+    return materials[id].get();
 }
