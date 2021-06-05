@@ -160,7 +160,9 @@ int main(int argc, char** argv) {
     float fov_y_rad = 22.f * M_PI / 180.f;
 
     // auto [world, cam] = cornellBox();
-    auto [world, cam] = furnace();
+    auto pair = furnace();
+    World world = std::move(pair.first);
+    Camera cam = std::move(pair.second);
     // World world = suzanne();
     // World world = furnace();
     // World world = test();
