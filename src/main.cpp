@@ -23,7 +23,7 @@
 #include <fenv.h>
 #endif
 
-#define NUM_BOUNCES 10
+#define NUM_BOUNCES 30
 #define NUM_SAMPLES 100
 #define CLAMP_CONSTANT 100000.f
 
@@ -73,13 +73,14 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
             delete pdf;
             throughput *= glm::dot(new_dir, inter->normal) * f / p;
 
+            inter = world.intersects(ray);
+
             // if (i > 2) {
             //     float q = std::max(.05f, 1.f - throughput.length());
             //     if (random_between(0.f, 1.f) < q) break;
             //     throughput /= (1.f - q);
             // }
 
-            inter = world.intersects(ray);
         } else {
             if (i == 0 && world.envlight)
                 L += world.envlight->emitted(ray.d);

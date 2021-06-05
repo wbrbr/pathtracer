@@ -79,7 +79,6 @@ std::pair<World, Camera> parsePbrt(std::string path)
     for (const pbrt::LightSource::SP& light : obj->lightSources) {
         if (light->as<pbrt::PointLightSource>()) {
             pbrt::PointLightSource::SP in_point_light = light->as<pbrt::PointLightSource>();
-            std::cout << "POINT LIGHT" << std::endl;
             // incorrect
             world.addLight(std::make_unique<PointLight>(convertVec3(in_point_light->from), convertVec3(in_point_light->I)));
         }

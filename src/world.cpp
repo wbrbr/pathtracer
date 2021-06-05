@@ -104,10 +104,8 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         Ray light_ray(ray.at(inter.t) + 0.0001f * inter.normal, dir);
         auto light_inter = intersects(light_ray);
         if (!light_inter) {
-            PDF* pdf_brdf = mat->getPDF(inter.normal);
             glm::vec3 f = fn(dir, envlight->emitted(dir));
             Ld += f / p;
-            delete pdf_brdf;
         }
     } else {
         /* glm::vec3 point = uniformSampleTriangle(lights[light_id]);
@@ -133,10 +131,8 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
         glm::vec3 lightSample = lights[light_id]->samplePosition(inter, p, emitted);
         glm::vec3 dir = lightSample - from;
         
-        if (glm::dot(inter.normal, dir) >= 0 && !isOccluded(from, lightSample, lights[light_id].get())) {
-            PDF* pdf_brdf = mat->getPDF(inter.normal);
-            Ld += fn(dir, emitted) / (p + pdf_brdf->value(dir));
-            delete pdf_brdf;
+        if (glm::dot(inter.normal, dir) >= 0 && !isOccluded(from + 0.0001f * inter.normal, lightSample, lights[light_id].get())) {
+            Ld += fn(dir, emitted) / p;
         }
     }
 

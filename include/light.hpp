@@ -14,7 +14,7 @@ public:
     virtual glm::vec3 samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) = 0;
 };
 
-class PointLight: public Light {
+class PointLight : public Light {
 public:
     PointLight(glm::vec3 location, glm::vec3 irradiance);
     virtual ~PointLight() = default;
@@ -22,6 +22,17 @@ public:
 
 private:
     glm::vec3 location;
+    glm::vec3 irradiance;
+};
+
+class DirectionalLight : public Light {
+public:
+    DirectionalLight(glm::vec3 direction, glm::vec3 radiance);
+    virtual ~DirectionalLight() = default;
+    virtual glm::vec3 samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) override;
+
+private:
+    glm::vec3 direction;
     glm::vec3 irradiance;
 };
 

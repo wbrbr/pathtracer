@@ -3,14 +3,18 @@
 #include "util.hpp"
 #include <algorithm>
 #include <fstream>
+#include <glm/gtx/norm.hpp>
 #include <iostream>
 #include <numeric>
-#include <glm/gtx/norm.hpp>
 
 PointLight::PointLight(glm::vec3 location, glm::vec3 irradiance)
-    : location(location), irradiance(irradiance) {}
+    : location(location)
+    , irradiance(irradiance)
+{
+}
 
-glm::vec3 PointLight::samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) {
+glm::vec3 PointLight::samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted)
+{
     pdf = 1;
     emitted = irradiance / glm::distance2(location, inter.p);
     return location;
