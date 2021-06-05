@@ -2,8 +2,7 @@
 #define BOX_HPP
 #include "ray.hpp"
 
-class Box
-{
+class Box {
 public:
     Box();
     Box(glm::vec3 min, glm::vec3 max);

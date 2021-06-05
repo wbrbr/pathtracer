@@ -9,7 +9,7 @@ public:
     virtual glm::vec3 sample() = 0;
 };
 
-class UniformHemispherePDF: public PDF {
+class UniformHemispherePDF : public PDF {
 public:
     UniformHemispherePDF(glm::vec3 n);
     float value(glm::vec3 v);
@@ -19,7 +19,7 @@ private:
     glm::vec3 n;
 };
 
-class CosineHemispherePDF: public PDF {
+class CosineHemispherePDF : public PDF {
 public:
     CosineHemispherePDF(glm::vec3 n);
     float value(glm::vec3 v);

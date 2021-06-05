@@ -1,10 +1,10 @@
 #include "world.hpp"
-#include "util.hpp"
 #include "material.hpp"
+#include "util.hpp"
 #include <algorithm>
-#include <iostream>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <iostream>
 #include <optional>
 
 World::World()
@@ -26,19 +26,20 @@ std::optional<IntersectionData> World::intersects(Ray ray)
 {
     std::vector<IntersectionData> inters;
 
-    for (Shape* s : shapes) 
-    {
+    for (Shape* s : shapes) {
         auto inter = s->intersects(ray);
-        if (inter) inters.push_back(*inter);
+        if (inter)
+            inters.push_back(*inter);
     }
 
-    if (inters.size() == 0) return {};
+    if (inters.size() == 0)
+        return {};
 
     IntersectionData closest = inters[0];
 
-    for (IntersectionData inter : inters)
-    {
-        if (inter.t < closest.t) closest = inter;
+    for (IntersectionData inter : inters) {
+        if (inter.t < closest.t)
+            closest = inter;
     }
 
     return closest;
@@ -47,7 +48,7 @@ std::optional<IntersectionData> World::intersects(Ray ray)
 std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
 {
     assert(lights.size() > 0);
-    int light_id = random_int(0, lights.size()-1);
+    int light_id = random_int(0, lights.size() - 1);
 
     glm::vec3 point = uniformSampleTriangle(*lights[light_id]);
     glm::vec3 v = point - p;
@@ -62,9 +63,11 @@ std::pair<glm::vec3, float> World::sampleLights(glm::vec3 p)
 glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 {
     unsigned int n = lights.size();
-    if (envlight != nullptr) n++;
-    if (n == 0) return glm::vec3(0.);
-    int light_id = random_int(0, n-1);
+    if (envlight != nullptr)
+        n++;
+    if (n == 0)
+        return glm::vec3(0.);
+    int light_id = random_int(0, n - 1);
 
     glm::vec3 Ld(0.);
 
@@ -135,4 +138,3 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 
     return Ld * (float)n;
 }
-

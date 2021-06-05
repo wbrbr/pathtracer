@@ -1,16 +1,17 @@
 #include "material.hpp"
-#include "util.hpp"
 #include "plot.hpp"
+#include "util.hpp"
+#include <cassert>
 #include <cmath>
 #include <iostream>
-#include <cassert>
 
 glm::vec3 Material::emitted()
 {
     return glm::vec3(0.f, 0.f, 0.f);
 }
 
-DiffuseMaterial::DiffuseMaterial(glm::vec3 albedo): albedo(albedo)
+DiffuseMaterial::DiffuseMaterial(glm::vec3 albedo)
+    : albedo(albedo)
 {
 }
 
@@ -26,7 +27,9 @@ glm::vec3 DiffuseMaterial::eval(glm::vec3 wi, glm::vec3 wo, glm::vec3 n)
     return (float)M_1_PI * albedo;
 }
 
-MetalMaterial::MetalMaterial(glm::vec3 albedo, float alpha): albedo(albedo), alpha(alpha)
+MetalMaterial::MetalMaterial(glm::vec3 albedo, float alpha)
+    : albedo(albedo)
+    , alpha(alpha)
 {
 }
 
@@ -43,12 +46,13 @@ glm::vec3 GGXF(glm::vec3 wi, glm::vec3 hr, glm::vec3 F0)
 }
 
 // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
-float GGXD(glm::vec3 hr, glm::vec3 n, float alpha) 
+float GGXD(glm::vec3 hr, glm::vec3 n, float alpha)
 {
     float ndoth = glm::dot(n, hr);
-    if (ndoth < 0.f) return 0.f;
+    if (ndoth < 0.f)
+        return 0.f;
 
-    float a2 = alpha*alpha;
+    float a2 = alpha * alpha;
     float denum = ndoth * ndoth * (a2 - 1.f) + 1.f;
     return a2 / (M_PI * denum * denum);
 }
@@ -56,7 +60,8 @@ float GGXD(glm::vec3 hr, glm::vec3 n, float alpha)
 float G1(glm::vec3 n, glm::vec3 v, float alpha)
 {
     float ndotv = dot(n, v);
-    if (ndotv < 0) return 0.;
+    if (ndotv < 0)
+        return 0.;
 
     float num = 2.f * ndotv;
     float a2 = alpha * alpha;

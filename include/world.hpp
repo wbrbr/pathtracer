@@ -1,15 +1,14 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
-#include <vector>
-#include <utility>
-#include <memory>
-#include "shape.hpp"
 #include "box.hpp"
-#include "trianglemesh.hpp"
 #include "light.hpp"
+#include "shape.hpp"
+#include "trianglemesh.hpp"
+#include <memory>
+#include <utility>
+#include <vector>
 
-class World
-{
+class World {
 public:
     World();
     void add(Shape* s);
@@ -22,7 +21,7 @@ public:
     std::unique_ptr<EnvLight> envlight;
 
 private:
-	// TODO: use smart pointers instead ? (unique_ptr) or delete in destructor
+    // TODO: use smart pointers instead ? (unique_ptr) or delete in destructor
     std::vector<Shape*> shapes;
     std::vector<Triangle*> lights;
 };

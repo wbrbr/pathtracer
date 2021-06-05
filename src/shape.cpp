@@ -1,10 +1,10 @@
 #include "shape.hpp"
-#include <iostream>
 #include "glm/gtx/string_cast.hpp"
+#include <iostream>
 
 TransformedShape::TransformedShape(Shape* s, glm::mat4 transform)
 {
-    shape = s; 
+    shape = s;
     invTransform = glm::inverse(transform);
 }
 

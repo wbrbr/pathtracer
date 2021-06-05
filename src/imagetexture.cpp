@@ -3,8 +3,8 @@
 #include "stb_image.h"
 #define TINYEXR_IMPLEMENTATION
 #include "tinyexr.h"
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 
 ImageTexture::ImageTexture(std::string path)
 {
@@ -22,18 +22,20 @@ ImageTexture::ImageTexture(std::string path)
         h = (unsigned)y;
         data = reinterpret_cast<glm::vec3*>(buf);
     } else if (ext == ".exr") {
-        
-        const char **layer_names;
+
+        const char** layer_names;
         int num_layers;
         const char* err;
         int ret = EXRLayers(path.c_str(), &layer_names, &num_layers, &err);
-        if (ret != TINYEXR_SUCCESS) fprintf(stderr, "%s\n", err);
+        if (ret != TINYEXR_SUCCESS)
+            fprintf(stderr, "%s\n", err);
         std::cout << num_layers << std::endl;
         assert(num_layers > 0);
         float* buf;
         int x, y;
         ret = LoadEXRWithLayer(&buf, &x, &y, path.c_str(), layer_names[0], &err);
-        if (ret != TINYEXR_SUCCESS) fprintf(stderr, "%s\n", err);
+        if (ret != TINYEXR_SUCCESS)
+            fprintf(stderr, "%s\n", err);
         w = (unsigned)x;
         h = (unsigned)y;
         data = reinterpret_cast<glm::vec3*>(buf);
@@ -53,22 +55,24 @@ glm::vec3 ImageTexture::get(float u, float v)
     v *= (float)h;
 
     unsigned xmin = (unsigned)u;
-    unsigned xmax = xmin+1;
+    unsigned xmax = xmin + 1;
     unsigned ymin = (unsigned)v;
-    unsigned ymax = ymin+1;
-    if (xmax == w) xmax = xmin;
-    if (ymax == h) ymax = ymin;
+    unsigned ymax = ymin + 1;
+    if (xmax == w)
+        xmax = xmin;
+    if (ymax == h)
+        ymax = ymin;
     float tx = u - (float)xmin;
     float ty = v - (float)ymin;
-    glm::vec3 v1 = ty * data[ymax*w+xmin] + (1.f - ty) * data[ymin*w+xmin];
-    glm::vec3 v2 = ty * data[ymax*w+xmax] + (1.f - ty) * data[ymin*w+xmax];
+    glm::vec3 v1 = ty * data[ymax * w + xmin] + (1.f - ty) * data[ymin * w + xmin];
+    glm::vec3 v2 = ty * data[ymax * w + xmax] + (1.f - ty) * data[ymin * w + xmax];
     return tx * v2 + (1.f - tx) * v1;
 }
 
 glm::vec3 ImageTexture::getPixel(unsigned int x, unsigned int y)
 {
     assert(x < w && y < h);
-    return data[y*w + x];
+    return data[y * w + x];
 }
 
 unsigned int ImageTexture::width()

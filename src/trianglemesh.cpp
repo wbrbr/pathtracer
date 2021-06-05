@@ -1,16 +1,18 @@
 #include "trianglemesh.hpp"
-#include "world.hpp"
 #include "material.hpp"
+#include "world.hpp"
 #include <cassert>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 BVHBuildNode::~BVHBuildNode()
 {
-    if (left != nullptr) delete left; 
-    if (right != nullptr) delete right;
+    if (left != nullptr)
+        delete left;
+    if (right != nullptr)
+        delete right;
 }
 
 std::optional<IntersectionData> BVHBuildNode::intersects(Ray ray)
@@ -21,15 +23,14 @@ std::optional<IntersectionData> BVHBuildNode::intersects(Ray ray)
     if (left == nullptr) {
         IntersectionData closest;
         closest.t = INFINITY;
-        for (Triangle t : triangles)
-        {
+        for (Triangle t : triangles) {
             auto inter = t.intersects(ray);
             if (inter && inter->t < closest.t) {
                 closest = *inter;
             }
         }
 
-        return closest.t == INFINITY ? std::optional<IntersectionData>{} : closest;
+        return closest.t == INFINITY ? std::optional<IntersectionData> {} : closest;
     } else {
         assert(right != nullptr);
         auto interLeft = left->intersects(ray);
@@ -40,8 +41,8 @@ std::optional<IntersectionData> BVHBuildNode::intersects(Ray ray)
             } else {
                 return interLeft;
             }
-        }
-        else return right->intersects(ray);
+        } else
+            return right->intersects(ray);
     }
 }
 
@@ -63,7 +64,7 @@ bool compareZ(Triangle s1, Triangle s2)
 std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHBuildNode* node)
 {
     glm::vec3 sides = node->box.getMax() - node->box.getMin();
-    
+
     if (sides.x >= sides.y && sides.x >= sides.z) {
         std::sort(node->triangles.begin(), node->triangles.end(), compareX);
     } else if (sides.y >= sides.x && sides.y >= sides.z) {
@@ -74,21 +75,18 @@ std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHBuildNode
 
     std::vector<float> costs;
 
-    for (unsigned int i = 0; i < node->triangles.size(); i++)
-    {
+    for (unsigned int i = 0; i < node->triangles.size(); i++) {
         Box b0;
         Box b1;
         unsigned int count0 = 0;
         unsigned int count1 = 0;
 
-        for (unsigned int j = 1; j < i; j++)
-        {
+        for (unsigned int j = 1; j < i; j++) {
             b0 = b0.add(node->triangles[j].boundingBox());
             count0++;
         }
 
-        for (unsigned int j = i; j < node->triangles.size(); j++)
-        {
+        for (unsigned int j = i; j < node->triangles.size(); j++) {
             b1 = b1.add(node->triangles[j].boundingBox());
             count1++;
         }
@@ -109,8 +107,7 @@ std::pair<std::vector<Triangle>, std::vector<Triangle>> splitShapes(BVHBuildNode
 Box computeBoundingBox(BVHBuildNode* node)
 {
     Box b = node->triangles.at(0).boundingBox();
-    for (Triangle s : node->triangles)
-    {
+    for (Triangle s : node->triangles) {
         b = b.add(s.boundingBox());
     }
     return b;
@@ -133,7 +130,6 @@ void buildBVHNode(BVHBuildNode* node)
         node->right = nullptr;
     }
 }
-
 
 inline float fmin(float a, float b, float c)
 {
@@ -177,40 +173,40 @@ glm::vec3 Triangle::normal()
 
 std::optional<IntersectionData> Triangle::intersects(Ray ray)
 {
-	const float EPSILON = 0.0000001;
-	glm::vec3 vertex0 = tm->getVertex(i0);
-	glm::vec3 vertex1 = tm->getVertex(i1);
-	glm::vec3 vertex2 = tm->getVertex(i2);
-	glm::vec3 edge1, edge2, h, s, q;
-	float a, f, u, v;
-	edge1 = vertex1 - vertex0;
-	edge2 = vertex2 - vertex0;
-	h = cross(ray.d, edge2);
-	a = dot(edge1, h);
-	if (a > -EPSILON && a < EPSILON)
-		return {};    // This ray is parallel to this triangle.
-	f = 1.0 / a;
-	s = ray.o - vertex0;
-	u = f * dot(s, h);
-	if (u < 0.0 || u > 1.0)
-		return {};
-	q = cross(s, edge1);
-	v = f * dot(ray.d, q);
-	if (v < 0.0 || u + v > 1.0)
-		return {};
-	// At this stage we can compute t to find out where the intersection point is on the line.
-	float t = f * dot(edge2, q);
-	if (t > EPSILON) // ray intersection
-	{
-		IntersectionData inter;
-		inter.t = t;
-		inter.normal = glm::normalize(glm::cross(edge1, edge2)); // TODO: cache triangle normal
-        if (glm::dot(-ray.d, inter.normal) < 0) inter.normal *= -1.f;
+    const float EPSILON = 0.0000001;
+    glm::vec3 vertex0 = tm->getVertex(i0);
+    glm::vec3 vertex1 = tm->getVertex(i1);
+    glm::vec3 vertex2 = tm->getVertex(i2);
+    glm::vec3 edge1, edge2, h, s, q;
+    float a, f, u, v;
+    edge1 = vertex1 - vertex0;
+    edge2 = vertex2 - vertex0;
+    h = cross(ray.d, edge2);
+    a = dot(edge1, h);
+    if (a > -EPSILON && a < EPSILON)
+        return {}; // This ray is parallel to this triangle.
+    f = 1.0 / a;
+    s = ray.o - vertex0;
+    u = f * dot(s, h);
+    if (u < 0.0 || u > 1.0)
+        return {};
+    q = cross(s, edge1);
+    v = f * dot(ray.d, q);
+    if (v < 0.0 || u + v > 1.0)
+        return {};
+    // At this stage we can compute t to find out where the intersection point is on the line.
+    float t = f * dot(edge2, q);
+    if (t > EPSILON) // ray intersection
+    {
+        IntersectionData inter;
+        inter.t = t;
+        inter.normal = glm::normalize(glm::cross(edge1, edge2)); // TODO: cache triangle normal
+        if (glm::dot(-ray.d, inter.normal) < 0)
+            inter.normal *= -1.f;
         inter.material = mat;
-		return inter;
-	}
-	else // This means that there is a line intersection but not a ray intersection.
-		return {};
+        return inter;
+    } else // This means that there is a line intersection but not a ray intersection.
+        return {};
 }
 
 TriangleMesh::TriangleMesh()
@@ -235,19 +231,17 @@ void loadObj(std::string path, World* world, Material* mat)
         return;
     }
 
-	std::vector<tinyobj::shape_t> shapes = reader.GetShapes();
-	tinyobj::attrib_t attrib = reader.GetAttrib();
+    std::vector<tinyobj::shape_t> shapes = reader.GetShapes();
+    tinyobj::attrib_t attrib = reader.GetAttrib();
     std::vector<tinyobj::material_t> materials = reader.GetMaterials();
 
     std::vector<glm::vec3> vertices;
-	for (unsigned int i = 0; i < attrib.vertices.size() / 3; i++)
-	{
-		vertices.push_back(glm::vec3(attrib.vertices[3 * i], attrib.vertices[3 * i + 1], attrib.vertices[3 * i + 2]));
-	}
+    for (unsigned int i = 0; i < attrib.vertices.size() / 3; i++) {
+        vertices.push_back(glm::vec3(attrib.vertices[3 * i], attrib.vertices[3 * i + 1], attrib.vertices[3 * i + 2]));
+    }
 
-	assert(shapes.size() > 0);
-    for (unsigned int s = 0; s < shapes.size(); s++)
-    {
+    assert(shapes.size() > 0);
+    for (unsigned int s = 0; s < shapes.size(); s++) {
         auto mesh = shapes[s].mesh;
         TriangleMesh* tm = new TriangleMesh;
         tm->vertices = vertices;
@@ -255,17 +249,17 @@ void loadObj(std::string path, World* world, Material* mat)
         // a reallocation for push_back
         tm->root.triangles.reserve(mesh.num_face_vertices.size());
         Material* metal = new MetalMaterial(glm::vec3(.8, .8, .8), .2);
-        for (unsigned int i = 0; i < mesh.num_face_vertices.size(); i++)
-        {
+        for (unsigned int i = 0; i < mesh.num_face_vertices.size(); i++) {
             assert(mesh.num_face_vertices[i] == 3);
             Triangle triangle;
-            triangle.i0 = mesh.indices[3*i].vertex_index;
-            triangle.i1 = mesh.indices[3*i+1].vertex_index;
-            triangle.i2 = mesh.indices[3*i+2].vertex_index;
+            triangle.i0 = mesh.indices[3 * i].vertex_index;
+            triangle.i1 = mesh.indices[3 * i + 1].vertex_index;
+            triangle.i2 = mesh.indices[3 * i + 2].vertex_index;
             triangle.tm = tm;
             bool is_light = false;
             int mat_id = mesh.material_ids[i];
-            if (s == 0) triangle.mat = metal;
+            if (s == 0)
+                triangle.mat = metal;
             else if (mat_id == -1) {
                 triangle.mat = mat;
             } else {
@@ -279,7 +273,8 @@ void loadObj(std::string path, World* world, Material* mat)
                 }
             }
             tm->root.triangles.push_back(triangle);
-            if (is_light) world->addLight(tm->root.triangles.data() + tm->root.triangles.size() - 1);
+            if (is_light)
+                world->addLight(tm->root.triangles.data() + tm->root.triangles.size() - 1);
         }
 
         buildBVHNode(&tm->root);
@@ -290,7 +285,7 @@ void loadObj(std::string path, World* world, Material* mat)
 
 std::optional<IntersectionData> TriangleMesh::intersects(Ray ray)
 {
-	/* IntersectionData closest;
+    /* IntersectionData closest;
 	closest.t = INFINITY;
 	for (Triangle t : triangles)
 	{
@@ -306,5 +301,5 @@ std::optional<IntersectionData> TriangleMesh::intersects(Ray ray)
 
 glm::vec3 TriangleMesh::getVertex(int i)
 {
-	return vertices[i];
+    return vertices[i];
 }

@@ -1,23 +1,23 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-#include <iostream>
-#include <string>
-#include <array>
-#include <vector>
-#include <random>
-#include <mutex>
-#include <utility>
-#include <cassert>
-#include "ray.hpp"
-#include "sphere.hpp"
-#include "world.hpp"
-#include "util.hpp"
-#include "trianglemesh.hpp"
 #include "camera.hpp"
-#include "pdf.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/string_cast.hpp"
 #include "pbrt_parser.hpp"
+#include "pdf.hpp"
+#include "ray.hpp"
+#include "sphere.hpp"
+#include "stb_image_write.h"
+#include "trianglemesh.hpp"
+#include "util.hpp"
+#include "world.hpp"
+#include <array>
+#include <cassert>
+#include <iostream>
+#include <mutex>
+#include <random>
+#include <string>
+#include <utility>
+#include <vector>
 
 #ifdef NANCHECK
 #include <fenv.h>
@@ -30,13 +30,12 @@
 void write_png(std::string path, int w, int h, glm::vec3* pixels)
 {
     std::vector<unsigned char> data;
-    data.reserve(3*w*h);
-    for (int i = 0; i < w*h; i++)
-    {
+    data.reserve(3 * w * h);
+    for (int i = 0; i < w * h; i++) {
         glm::vec3 clamped(fmin(pixels[i].x, 1.f), fmin(pixels[i].y, 1.f), fmin(pixels[i].z, 1.f));
-        unsigned char r = (unsigned char)(pow(clamped.x, 0.4545)*255.99f);
-        unsigned char g = (unsigned char)(pow(clamped.y, 0.4545)*255.99f);
-        unsigned char b = (unsigned char)(pow(clamped.z, 0.4545)*255.99f);
+        unsigned char r = (unsigned char)(pow(clamped.x, 0.4545) * 255.99f);
+        unsigned char g = (unsigned char)(pow(clamped.y, 0.4545) * 255.99f);
+        unsigned char b = (unsigned char)(pow(clamped.z, 0.4545) * 255.99f);
         data.push_back(r);
         data.push_back(g);
         data.push_back(b);
@@ -50,21 +49,20 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
     Ray ray = primary_ray;
     glm::vec3 L(0.f);
     glm::vec3 throughput(1.f);
-    for (int i = 0; i <= bounces; i++)
-    {
+    for (int i = 0; i <= bounces; i++) {
         if (inter) {
-            if (i == 0) L += throughput * inter->material->emitted();
+            if (i == 0)
+                L += throughput * inter->material->emitted();
 
             glm::vec3 Ld = world.directLighting(ray, *inter);
 
             L += throughput * Ld;
-            
+
             assert(inter->material != nullptr);
             PDF* pdf = inter->material->getPDF(inter->normal);
 
             glm::vec3 new_dir = pdf->sample();
             float p = pdf->value(new_dir);
-
 
             glm::vec3 f = inter->material->eval(-ray.d, new_dir, inter->normal);
 
@@ -78,10 +76,11 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
             //     if (random_between(0.f, 1.f) < q) break;
             //     throughput /= (1.f - q);
             // }
-            
+
             inter = world.intersects(ray);
         } else {
-            if (i == 0 && world.envlight) L += world.envlight->emitted(ray.d);
+            if (i == 0 && world.envlight)
+                L += world.envlight->emitted(ray.d);
             break;
         }
     }
@@ -120,7 +119,7 @@ std::pair<World, Camera> cornellBox()
     world.envlight = nullptr;
     // world.envlight = std::make_unique<EnvLight>("bg.hdr");
     glm::vec3 cam_pos(0.f, 1.f, 4.f);
-	Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), 30.f * M_PI / 180.f);
+    Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), 30.f * M_PI / 180.f);
     // return std::make_pair(world, cam);
     return std::make_pair(std::move(world), cam);
 }
@@ -144,7 +143,8 @@ World test()
     return world;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 #ifdef NANCHECK
     feenableexcept(FE_INVALID | FE_OVERFLOW);
 #endif
@@ -168,21 +168,19 @@ int main(int argc, char** argv) {
     // World world = furnace();
     // World world = test();
 
-	// Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), fov_y_rad);
-	// Camera cam(cam_pos, glm::vec3(0.f, 0.f, 0.f), fov_y_rad);
+    // Camera cam(cam_pos, glm::vec3(0.f, 1.f, 0.f), fov_y_rad);
+    // Camera cam(cam_pos, glm::vec3(0.f, 0.f, 0.f), fov_y_rad);
     std::vector<glm::vec3> pixels;
-	pixels.resize(WIDTH * HEIGHT);
+    pixels.resize(WIDTH * HEIGHT);
 
     int done = 0;
     int percent = 0;
-#pragma omp parallel for schedule(static,16)
-    for (int i = 0; i < WIDTH*HEIGHT; i++)
-    {
+#pragma omp parallel for schedule(static, 16)
+    for (int i = 0; i < WIDTH * HEIGHT; i++) {
         int xi = i % WIDTH;
         int yi = i / WIDTH;
         glm::vec3 c(0.f, 0.f, 0.f);
-        for (int s = 0; s < NUM_SAMPLES; s++)
-        {
+        for (int s = 0; s < NUM_SAMPLES; s++) {
             Ray ray = cam.getRay(xi, yi, WIDTH, HEIGHT);
             auto primary_intersection = world.intersects(ray);
             c += glm::min(color(world, ray, NUM_BOUNCES, primary_intersection), glm::vec3(CLAMP_CONSTANT));
@@ -191,8 +189,8 @@ int main(int argc, char** argv) {
 #pragma omp atomic
         done++;
 
-        if (done * 100 / (WIDTH*HEIGHT) > percent) {
-            percent = done * 100 / (WIDTH*HEIGHT);
+        if (done * 100 / (WIDTH * HEIGHT) > percent) {
+            percent = done * 100 / (WIDTH * HEIGHT);
             std::cout << "Done: " << percent << "%" << std::endl;
         }
         c /= (float)NUM_SAMPLES;

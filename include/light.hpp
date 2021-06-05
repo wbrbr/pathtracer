@@ -1,21 +1,19 @@
 #ifndef LIGHT_HPP
 #define LIGHT_HPP
-#include <string>
+#include "imagetexture.hpp"
 #include <glm/vec3.hpp>
+#include <random>
+#include <string>
 #include <utility>
 #include <vector>
-#include <random>
-#include "imagetexture.hpp"
 
-class EnvLight
-{
+class EnvLight {
 public:
     virtual std::pair<glm::vec3, float> sampleDirection(glm::vec3 n) = 0;
     virtual glm::vec3 emitted(glm::vec3 dir) = 0;
 };
 
-class HDREnvLight: public EnvLight
-{
+class HDREnvLight : public EnvLight {
 public:
     HDREnvLight(std::string path);
     std::pair<glm::vec3, float> sampleDirection(glm::vec3 n);
@@ -28,7 +26,7 @@ private:
     std::mt19937 gen;
 };
 
-class ConstantEnvLight: public EnvLight {
+class ConstantEnvLight : public EnvLight {
 public:
     ConstantEnvLight(glm::vec3 color);
     std::pair<glm::vec3, float> sampleDirection(glm::vec3 n);

@@ -1,10 +1,9 @@
 #ifndef IMAGETEXTURE_HPP
 #define IMAGETEXTURE_HPP
-#include <string>
 #include <glm/vec3.hpp>
+#include <string>
 
-class ImageTexture
-{
+class ImageTexture {
 public:
     ImageTexture(std::string path);
     ~ImageTexture();

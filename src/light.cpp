@@ -1,28 +1,27 @@
 #include "light.hpp"
-#include "util.hpp"
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <numeric>
 #include "stb_image_write.h"
+#include "util.hpp"
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <numeric>
 
 float luminance(glm::vec3 c)
 {
-    return 0.212671f*c.r + 0.715160f*c.g + 0.072169f*c.b;
+    return 0.212671f * c.r + 0.715160f * c.g + 0.072169f * c.b;
 }
 
-HDREnvLight::HDREnvLight(std::string path): tex(path)
+HDREnvLight::HDREnvLight(std::string path)
+    : tex(path)
 {
     std::vector<float> p_y, p_cond;
 
-    for (unsigned int y = 0; y < tex.height(); y++)
-    {
+    for (unsigned int y = 0; y < tex.height(); y++) {
         float s = 0.;
         float v = (float)(tex.height() - 1 - y) + .5f;
         float theta = v * M_PI / (float)tex.height();
         float sinTheta = std::sin(theta);
-        for (unsigned int x = 0; x < tex.width(); x++)
-        {
+        for (unsigned int x = 0; x < tex.width(); x++) {
             float v = luminance(tex.getPixel(x, y)) * sinTheta;
             p_cond.push_back(v);
             s += v;
@@ -31,10 +30,9 @@ HDREnvLight::HDREnvLight(std::string path): tex(path)
     }
 
     dist_y = std::discrete_distribution<unsigned int>(p_y.begin(), p_y.end());
-    for (unsigned int y = 0; y < tex.height(); y++)
-    {
+    for (unsigned int y = 0; y < tex.height(); y++) {
         if (p_y.at(y) > 0.f) {
-            dist_cond.push_back(std::discrete_distribution<unsigned int>(p_cond.begin()+y*tex.width(), p_cond.begin()+(y+1)*tex.width()));
+            dist_cond.push_back(std::discrete_distribution<unsigned int>(p_cond.begin() + y * tex.width(), p_cond.begin() + (y + 1) * tex.width()));
         } else {
             dist_cond.push_back(std::discrete_distribution<unsigned int>());
         }
@@ -54,7 +52,7 @@ std::pair<glm::vec3, float> HDREnvLight::sampleDirection(glm::vec3 n)
     float p = px * py / pixel_area;
 
     float u = (float)x / (float)tex.width();
-    float v = ((float)(tex.height() - 1 - y) + .5f ) / (float)tex.height();
+    float v = ((float)(tex.height() - 1 - y) + .5f) / (float)tex.height();
 
     float theta = v * M_PI;
     float phi = u * 2.f * M_PI;
@@ -65,7 +63,7 @@ std::pair<glm::vec3, float> HDREnvLight::sampleDirection(glm::vec3 n)
     float sinPhi = std::sin(phi);
     p /= 2. * M_PI * M_PI * sinTheta;
 
-    return std::make_pair(glm::vec3(sinTheta*cosPhi, cosTheta, sinTheta*sinPhi), p);
+    return std::make_pair(glm::vec3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi), p);
     /* glm::vec3 disk = random_unit_disk();
     auto basis = plane_onb_from_normal(n);
     float z = sqrt(1.f - disk.x * disk.x - disk.y * disk.y);
@@ -76,20 +74,25 @@ std::pair<glm::vec3, float> HDREnvLight::sampleDirection(glm::vec3 n)
 glm::vec3 HDREnvLight::emitted(glm::vec3 dir)
 {
     float phi = std::atan2(dir.z, dir.x) * .5f * M_1_PI;
-    if (phi < 0) phi = std::min(0.9999f, phi+1.f);
-    
+    if (phi < 0)
+        phi = std::min(0.9999f, phi + 1.f);
+
     assert(phi >= 0);
     assert(phi < 1);
 
     float theta = std::acos(-dir.y) * M_1_PI;
     assert(theta >= 0);
-    if (theta >= 1.) theta = 0.9999f;
+    if (theta >= 1.)
+        theta = 0.9999f;
     assert(theta < 1);
-    
+
     return .5f * tex.get(phi, theta);
 }
 
-ConstantEnvLight::ConstantEnvLight(glm::vec3 color): color(color) {}
+ConstantEnvLight::ConstantEnvLight(glm::vec3 color)
+    : color(color)
+{
+}
 
 std::pair<glm::vec3, float> ConstantEnvLight::sampleDirection(glm::vec3 n)
 {

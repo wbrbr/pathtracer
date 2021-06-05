@@ -1,12 +1,11 @@
 #ifndef SPHERE_HPP
 #define SPHERE_HPP
-#include "ray.hpp"
 #include "material.hpp"
+#include "ray.hpp"
 #include "shape.hpp"
 #include <optional>
 
-class Sphere: public Shape
-{
+class Sphere : public Shape {
 public:
     glm::vec3 c; // center
     float r; // radius

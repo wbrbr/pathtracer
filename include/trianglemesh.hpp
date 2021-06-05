@@ -1,29 +1,27 @@
 #ifndef TRIANGLE_MESH_HPP
 #define TRIANGLE_MESH_HPP
-#include <optional>
-#include <vector>
-#include <string>
-#include "shape.hpp"
-#include "ray.hpp"
 #include "glm/vec3.hpp"
+#include "ray.hpp"
+#include "shape.hpp"
+#include <optional>
+#include <string>
+#include <vector>
 
 class TriangleMesh;
 
-class Triangle
-{
+class Triangle {
 public:
     Box boundingBox();
-	std::optional<IntersectionData> intersects(Ray ray);
+    std::optional<IntersectionData> intersects(Ray ray);
     float area();
     glm::vec3 normal();
 
-	TriangleMesh* tm;
-	int i0, i1, i2;
+    TriangleMesh* tm;
+    int i0, i1, i2;
     Material* mat;
 };
 
-struct BVHBuildNode
-{
+struct BVHBuildNode {
     std::vector<Triangle> triangles;
     Box box;
     BVHBuildNode* left;
@@ -42,18 +40,16 @@ struct BVHBuildNode
     std::optional<IntersectionData> intersects(Ray ray);
 }; */
 
-class TriangleMesh: public Shape
-{
+class TriangleMesh : public Shape {
 public:
-	//TriangleMesh( Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices);
+    //TriangleMesh( Material* material, std::vector<Triangle>& triangles, std::vector<glm::vec3>& vertices);
     TriangleMesh();
     void buildBVH();
 
+    std::optional<IntersectionData> intersects(Ray ray);
+    glm::vec3 getVertex(int i);
 
-	std::optional<IntersectionData> intersects(Ray ray);
-	glm::vec3 getVertex(int i);
-
-	std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> vertices;
     BVHBuildNode root;
 };
 

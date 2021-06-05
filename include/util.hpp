@@ -1,8 +1,8 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
-#include <utility>
 #include "glm/glm.hpp"
 #include "trianglemesh.hpp"
+#include <utility>
 
 glm::vec3 random_unit_sphere();
 glm::vec3 random_unit_hemisphere(glm::vec3 normal);

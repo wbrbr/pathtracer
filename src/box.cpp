@@ -61,20 +61,26 @@ bool Box::intersects(Ray r)
 #endif
     const float t0 = 0.f;
     const float t1 = 100.f;
-    float tmin,tmax,tymin,tymax,tzmin,tzmax;
-    tmin= (bounds[r.sign[0]].x - r.o.x)* r.invd.x;
-    tmax= (bounds[1-r.sign[0]].x- r.o.x)* r.invd.x;
-    tymin= (bounds[r.sign[1]].y- r.o.y)* r.invd.y;
-    tymax= (bounds[1-r.sign[1]].y- r.o.y)* r.invd.y;
-    if ( (tmin> tymax)|| (tymin> tmax)) return false;
-    if (tymin> tmin) tmin= tymin;
-    if (tymax< tmax) tmax= tymax;
-    tzmin = (bounds[r.sign[2]].z- r.o.z)* r.invd.z;
-    tzmax= (bounds[1-r.sign[2]].z- r.o.z)* r.invd.z;
-    if ( (tmin> tzmax)|| (tzmin> tmax)) return false;
-    if (tzmin> tmin)tmin= tzmin;
-    if (tzmax< tmax) tmax= tzmax;
-    return( (tmin< t1) && (tmax> t0) );
+    float tmin, tmax, tymin, tymax, tzmin, tzmax;
+    tmin = (bounds[r.sign[0]].x - r.o.x) * r.invd.x;
+    tmax = (bounds[1 - r.sign[0]].x - r.o.x) * r.invd.x;
+    tymin = (bounds[r.sign[1]].y - r.o.y) * r.invd.y;
+    tymax = (bounds[1 - r.sign[1]].y - r.o.y) * r.invd.y;
+    if ((tmin > tymax) || (tymin > tmax))
+        return false;
+    if (tymin > tmin)
+        tmin = tymin;
+    if (tymax < tmax)
+        tmax = tymax;
+    tzmin = (bounds[r.sign[2]].z - r.o.z) * r.invd.z;
+    tzmax = (bounds[1 - r.sign[2]].z - r.o.z) * r.invd.z;
+    if ((tmin > tzmax) || (tzmin > tmax))
+        return false;
+    if (tzmin > tmin)
+        tmin = tzmin;
+    if (tzmax < tmax)
+        tmax = tzmax;
+    return ((tmin < t1) && (tmax > t0));
 #ifdef NANCHECK
     feenableexcept(FE_INVALID | FE_OVERFLOW);
 #endif

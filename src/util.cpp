@@ -1,8 +1,8 @@
 #include "util.hpp"
-#include <random>
 #include <iostream>
+#include <random>
 
-thread_local std::mt19937 rng(std::random_device{}());
+thread_local std::mt19937 rng(std::random_device {}());
 
 glm::vec3 random_unit_sphere()
 {
@@ -27,14 +27,14 @@ glm::vec3 random_unit_hemisphere(glm::vec3 n)
 
 glm::vec3 random_unit_disk()
 {
-	std::uniform_real_distribution<double> dist(-1.f, 1.f);
-	glm::vec3 p;
-	p.z = 0.f;
-	do {
-		p.x = dist(rng);
-		p.y = dist(rng);
-	} while (glm::length(p) >= 0.999f);
-	return p;
+    std::uniform_real_distribution<double> dist(-1.f, 1.f);
+    glm::vec3 p;
+    p.z = 0.f;
+    do {
+        p.x = dist(rng);
+        p.y = dist(rng);
+    } while (glm::length(p) >= 0.999f);
+    return p;
 }
 
 glm::vec3 cosine_unit_hemisphere(glm::vec3 n)

@@ -1,10 +1,11 @@
 #ifndef PLOT_HPP
 #define PLOT_HPP
-#include <string>
-#include <functional>
 #include <fstream>
+#include <functional>
+#include <string>
 
-void plot(std::string outpath, std::function<float(float)> f, float beg, float end, float step) {
+void plot(std::string outpath, std::function<float(float)> f, float beg, float end, float step)
+{
     std::string out = "";
     float t = beg;
     while (t <= end) {
