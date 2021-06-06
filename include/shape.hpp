@@ -2,8 +2,8 @@
 #define SHAPE_HPP
 #include "box.hpp"
 #include "glm/mat4x4.hpp"
-#include "ray.hpp"
 #include "id_types.hpp"
+#include "ray.hpp"
 #include <optional>
 
 class Material;

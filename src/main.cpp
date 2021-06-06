@@ -53,13 +53,13 @@ glm::vec3 color(World& world, Ray primary_ray, int bounces, std::optional<Inters
 
     for (int i = 0; i <= bounces; i++) {
         if (inter) {
-            if (glm::dot(inter->normal,-ray.d) < 0) {
+            if (glm::dot(inter->normal, -ray.d) < 0) {
                 inter->normal *= -1;
             }
             mat = world.getMaterial(inter->material);
             if (i == 0)
                 L += throughput * mat->emitted();
-            
+
             //return 0.5f * (inter->normal + glm::vec3(1.f));
 
             glm::vec3 Ld = world.directLighting(ray, *inter);
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
     const int HEIGHT = atoi(argv[3]);
 
     std::string path(argv[1]);
-    
+
     //auto pair = cornellBox();
     //auto pair = furnace();
     //auto pair = suzanne();

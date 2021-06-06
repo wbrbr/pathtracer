@@ -3,7 +3,9 @@
 #include <iostream>
 
 Camera::Camera(glm::vec3 position, glm::vec3 right, glm::vec3 up, glm::vec3 direction, float fov)
-    : position(position), right(right), up(up)
+    : position(position)
+    , right(right)
+    , up(up)
     , direction(direction)
     , fov(fov)
 {

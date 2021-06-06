@@ -12,7 +12,8 @@ class Light {
 public:
     virtual ~Light() = default;
     virtual glm::vec3 samplePosition(const IntersectionData& inter, float& pdf, glm::vec3& emitted) = 0;
-    virtual bool isDirectionalLight() {
+    virtual bool isDirectionalLight()
+    {
         return false;
     }
 };

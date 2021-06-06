@@ -1,13 +1,14 @@
 #include "intersector.hpp"
-#include <iostream>
 #include "trianglemesh.hpp"
+#include <iostream>
 
 void BVHIntersector::add(std::unique_ptr<Shape> shape)
 {
     shapes.push_back(std::move(shape));
 }
 
-void BVHIntersector::build() {
+void BVHIntersector::build()
+{
 }
 
 std::optional<IntersectionData> BVHIntersector::intersects(Ray ray)
@@ -62,33 +63,33 @@ void EmbreeIntersector::add(std::unique_ptr<Shape> shape)
     TriangleMesh* tm = dynamic_cast<TriangleMesh*>(shape.get());
     assert(tm);
     RTCGeometry geom = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_TRIANGLE);
-    float* vertices = (float*)rtcSetNewGeometryBuffer(geom,RTC_BUFFER_TYPE_VERTEX,0,RTC_FORMAT_FLOAT3,3*sizeof(float),tm->vertices.size());
-    rtcSetGeometryVertexAttributeCount(geom,1);
-    float* normals = (float*)rtcSetNewGeometryBuffer(geom,RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,0,RTC_FORMAT_FLOAT3,3*sizeof(float),tm->normals.size());
-    unsigned int* indices = (unsigned int*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX,0,RTC_FORMAT_UINT3,3*sizeof(unsigned int), tm->indices.size());
+    float* vertices = (float*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, 3 * sizeof(float), tm->vertices.size());
+    rtcSetGeometryVertexAttributeCount(geom, 1);
+    float* normals = (float*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, 3 * sizeof(float), tm->normals.size());
+    unsigned int* indices = (unsigned int*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, 3 * sizeof(unsigned int), tm->indices.size());
 
     for (unsigned int i = 0; i < tm->vertices.size(); i++) {
-        vertices[3*i+0] = tm->vertices[i].x;
-        vertices[3*i+1] = tm->vertices[i].y;
-        vertices[3*i+2] = tm->vertices[i].z;
+        vertices[3 * i + 0] = tm->vertices[i].x;
+        vertices[3 * i + 1] = tm->vertices[i].y;
+        vertices[3 * i + 2] = tm->vertices[i].z;
     }
 
     for (unsigned int i = 0; i < tm->normals.size(); i++) {
-        normals[3*i+0] = tm->normals[i].x;
-        normals[3*i+1] = tm->normals[i].y;
-        normals[3*i+2] = tm->normals[i].z;
+        normals[3 * i + 0] = tm->normals[i].x;
+        normals[3 * i + 1] = tm->normals[i].y;
+        normals[3 * i + 2] = tm->normals[i].z;
     }
 
     for (unsigned int i = 0; i < tm->indices.size(); i++) {
-        indices[3*i+0] = tm->indices[i].x;
-        indices[3*i+1] = tm->indices[i].y;
-        indices[3*i+2] = tm->indices[i].z;
+        indices[3 * i + 0] = tm->indices[i].x;
+        indices[3 * i + 1] = tm->indices[i].y;
+        indices[3 * i + 2] = tm->indices[i].z;
     }
 
     rtcSetGeometryUserData(geom, (void*)(size_t)tm->material);
 
     rtcCommitGeometry(geom);
-    rtcAttachGeometry(scene,geom);
+    rtcAttachGeometry(scene, geom);
     rtcReleaseGeometry(geom);
 }
 
@@ -142,7 +143,7 @@ std::optional<IntersectionData> EmbreeIntersector::intersects(Ray ray)
         interp.valueCount = 3;
         rtcInterpolate(&interp);
 
-        inter.normal = glm::normalize(glm::vec3(buf[0],buf[1],buf[2]));
+        inter.normal = glm::normalize(glm::vec3(buf[0], buf[1], buf[2]));
         //inter.normal = glm::normalize(glm::vec3(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z));
 
         return inter;

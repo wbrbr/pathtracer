@@ -1,11 +1,11 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 #include "box.hpp"
+#include "id_types.hpp"
+#include "intersector.hpp"
 #include "light.hpp"
 #include "shape.hpp"
 #include "trianglemesh.hpp"
-#include "id_types.hpp"
-#include "intersector.hpp"
 #include <memory>
 #include <utility>
 #include <vector>

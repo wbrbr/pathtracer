@@ -1,10 +1,10 @@
 #ifndef INTERSECTOR_HPP
 #define INTERSECTOR_HPP
+#include "embree3/rtcore.h"
+#include "shape.hpp"
 #include <memory>
 #include <optional>
 #include <vector>
-#include "shape.hpp"
-#include "embree3/rtcore.h"
 
 class Intersector {
 public:
@@ -15,7 +15,7 @@ public:
     virtual std::optional<IntersectionData> intersects(Ray ray) = 0;
 };
 
-class BVHIntersector: public Intersector {
+class BVHIntersector : public Intersector {
 public:
     virtual void add(std::unique_ptr<Shape> shape) override;
     virtual void build() override;
@@ -25,7 +25,7 @@ private:
     std::vector<std::unique_ptr<Shape>> shapes;
 };
 
-class EmbreeIntersector: public Intersector {
+class EmbreeIntersector : public Intersector {
 public:
     EmbreeIntersector();
     ~EmbreeIntersector();

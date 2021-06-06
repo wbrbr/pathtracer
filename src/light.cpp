@@ -33,7 +33,8 @@ glm::vec3 DirectionalLight::samplePosition(const IntersectionData& inter, float&
     return inter.p - direction;
 }
 
-bool DirectionalLight::isDirectionalLight() {
+bool DirectionalLight::isDirectionalLight()
+{
     return true;
 }
 

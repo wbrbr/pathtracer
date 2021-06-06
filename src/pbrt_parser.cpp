@@ -1,8 +1,8 @@
 #include "pbrt_parser.hpp"
+#include "intersector.hpp"
 #include "material.hpp"
 #include "pbrtParser/Scene.h"
 #include "sphere.hpp"
-#include "intersector.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 // TODO: stop the memory leaks (use unique_ptr to store the shapes and materials in world)
@@ -76,7 +76,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
                 tri.mat = material;
                 tm->root.triangles.push_back(tri);
 
-                tm->indices.push_back(glm::uvec3(i.x,i.y,i.z));
+                tm->indices.push_back(glm::uvec3(i.x, i.y, i.z));
             }
 
             /* if (in_tm->areaLight) {
