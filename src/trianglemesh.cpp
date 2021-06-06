@@ -214,6 +214,7 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
 
 TriangleMesh::TriangleMesh()
 {
+    material = -1;
 }
 
 std::optional<IntersectionData> TriangleMesh::intersects(Ray ray)

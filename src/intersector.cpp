@@ -63,6 +63,8 @@ void EmbreeIntersector::add(std::unique_ptr<Shape> shape)
     assert(tm);
     RTCGeometry geom = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_TRIANGLE);
     float* vertices = (float*)rtcSetNewGeometryBuffer(geom,RTC_BUFFER_TYPE_VERTEX,0,RTC_FORMAT_FLOAT3,3*sizeof(float),tm->vertices.size());
+    //float* normals = (float*)rtcSetNewGeometryBuffer(geom,RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,0,RTC_FORMAT_FLOAT3,3*sizeof(float),tm->normals.size());
+    unsigned int* indices = (unsigned int*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX,0,RTC_FORMAT_UINT3,3*sizeof(unsigned int), tm->indices.size());
 
     for (unsigned int i = 0; i < tm->vertices.size(); i++) {
         vertices[3*i+0] = tm->vertices[i].x;
@@ -70,12 +72,15 @@ void EmbreeIntersector::add(std::unique_ptr<Shape> shape)
         vertices[3*i+2] = tm->vertices[i].z;
     }
 
-    // TODO: indices
-    // TODO: normals
-    // TODO: material
+    for (unsigned int i = 0; i < tm->indices.size(); i++) {
+        indices[3*i+0] = tm->indices[i].x;
+        indices[3*i+1] = tm->indices[i].y;
+        indices[3*i+2] = tm->indices[i].z;
+    }
 
-    // rtcSetGeometryUserData(geom, (void*)tm->material);
-    //unsigned* indices = (unsigned*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0,RTC_FORMAT_UINT3,3*sizeof(unsigned),tm->indices.size());
+
+    // TODO: normals
+    rtcSetGeometryUserData(geom, (void*)(size_t)tm->material);
 
     rtcCommitGeometry(geom);
     rtcAttachGeometry(scene,geom);
@@ -112,7 +117,7 @@ std::optional<IntersectionData> EmbreeIntersector::intersects(Ray ray)
         IntersectionData inter;
         inter.t = rayhit.ray.tfar;
         inter.p = ray.at(inter.t);
-        inter.normal = glm::vec3(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z);
+        inter.normal = glm::normalize(glm::vec3(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z));
         RTCGeometry geom = rtcGetGeometry(scene, rayhit.hit.geomID);
         inter.material = (MaterialID)(size_t)rtcGetGeometryUserData(geom);
 

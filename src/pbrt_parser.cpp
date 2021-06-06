@@ -32,7 +32,8 @@ std::pair<World, Camera> parsePbrt(std::string path)
 
     World world;
 
-    auto intersector = std::make_unique<BVHIntersector>();
+    //auto intersector = std::make_unique<BVHIntersector>();
+    auto intersector = std::make_unique<EmbreeIntersector>();
 
     for (const pbrt::Shape::SP& shape : obj->shapes) {
         if (shape->as<pbrt::TriangleMesh>()) {
@@ -65,6 +66,8 @@ std::pair<World, Camera> parsePbrt(std::string path)
                 material = world.addMaterial(convertMaterial(in_mat));
             }
 
+            tm->material = material;
+
             for (pbrt::vec3i i : in_tm->index) {
                 Triangle tri;
                 tri.tm = tm.get();
@@ -73,6 +76,8 @@ std::pair<World, Camera> parsePbrt(std::string path)
                 tri.i2 = i.z;
                 tri.mat = material;
                 tm->root.triangles.push_back(tri);
+
+                tm->indices.push_back(glm::uvec3(i.x,i.y,i.z));
             }
 
             /* if (in_tm->areaLight) {
@@ -97,6 +102,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
         }
     }
 
+    intersector->build();
     world.setIntersector(std::move(intersector));
     //world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(.5f, .6f, .7f));
 
