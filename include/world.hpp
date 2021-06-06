@@ -5,6 +5,7 @@
 #include "shape.hpp"
 #include "trianglemesh.hpp"
 #include "id_types.hpp"
+#include "intersector.hpp"
 #include <memory>
 #include <utility>
 #include <vector>
@@ -13,7 +14,7 @@ class World {
 public:
     World();
 
-    ShapeID add(std::unique_ptr<Shape> shape);
+    void setIntersector(std::unique_ptr<Intersector> intersector);
     void addLight(std::unique_ptr<Light> light);
     MaterialID addMaterial(std::unique_ptr<Material> material);
     std::optional<IntersectionData> intersects(Ray ray);
@@ -21,7 +22,6 @@ public:
     glm::vec3 directLighting(Ray ray, IntersectionData inter);
     float lightPdf(Ray ray);
 
-    Shape* getShape(ShapeID id);
     Material* getMaterial(MaterialID id);
 
     std::unique_ptr<EnvLight> envlight;
@@ -29,6 +29,7 @@ public:
 private:
     std::vector<std::unique_ptr<Shape>> shapes;
     std::vector<std::unique_ptr<Material>> materials;
+    std::unique_ptr<Intersector> intersector;
 
     // make this an index into the shapes array
     std::vector<std::unique_ptr<Light>> lights;

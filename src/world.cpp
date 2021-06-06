@@ -12,12 +12,6 @@ World::World()
     envlight = nullptr;
 }
 
-MaterialID World::add(std::unique_ptr<Shape> s)
-{
-    shapes.push_back(std::move(s));
-    return (int)(shapes.size() - 1);
-}
-
 void World::addLight(std::unique_ptr<Light> light)
 {
     lights.push_back(std::move(light));
@@ -31,25 +25,7 @@ MaterialID World::addMaterial(std::unique_ptr<Material> material)
 
 std::optional<IntersectionData> World::intersects(Ray ray)
 {
-    std::vector<IntersectionData> inters;
-
-    for (auto& s : shapes) {
-        auto inter = s->intersects(ray);
-        if (inter)
-            inters.push_back(*inter);
-    }
-
-    if (inters.size() == 0)
-        return {};
-
-    IntersectionData closest = inters[0];
-
-    for (const IntersectionData& inter : inters) {
-        if (inter.t < closest.t)
-            closest = inter;
-    }
-
-    return closest;
+    return intersector->intersects(ray);
 }
 
 #if 0
@@ -174,4 +150,9 @@ glm::vec3 World::directLighting(Ray ray, IntersectionData inter)
 Material* World::getMaterial(MaterialID id)
 {
     return materials[id].get();
+}
+
+void World::setIntersector(std::unique_ptr<Intersector> intersector)
+{
+    this->intersector = std::move(intersector);
 }

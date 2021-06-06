@@ -2,6 +2,7 @@
 #include "material.hpp"
 #include "pbrtParser/Scene.h"
 #include "sphere.hpp"
+#include "intersector.hpp"
 #include <glm/gtx/string_cast.hpp>
 
 // TODO: stop the memory leaks (use unique_ptr to store the shapes and materials in world)
@@ -30,6 +31,8 @@ std::pair<World, Camera> parsePbrt(std::string path)
     pbrt::Object::SP obj = scene->world;
 
     World world;
+
+    std::unique_ptr<BVHIntersector> intersector;
 
     for (const pbrt::Shape::SP& shape : obj->shapes) {
         if (shape->as<pbrt::TriangleMesh>()) {
@@ -80,7 +83,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
 
             std::cout << "Building BVH (" << tm->root.triangles.size() << " tris)" << std::endl;
             buildBVHNode(&tm->root);
-            world.add(std::move(tm));
+            intersector->add(std::move(tm));
         }
     }
 
@@ -94,6 +97,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
         }
     }
 
+    world.setIntersector(std::move(intersector));
     //world.envlight = std::make_unique<ConstantEnvLight>(glm::vec3(.5f, .6f, .7f));
 
     pbrt::Camera::SP in_cam = scene->cameras[0];
