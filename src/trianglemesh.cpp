@@ -204,8 +204,6 @@ std::optional<IntersectionData> Triangle::intersects(Ray ray)
         inter.t = t;
         inter.p = ray.at(inter.t);
         inter.normal = normal(u, v);
-        if (glm::dot(-ray.d, inter.normal) < 0)
-            inter.normal *= -1.f;
         inter.material = mat;
         return inter;
     } else // This means that there is a line intersection but not a ray intersection.

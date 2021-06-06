@@ -63,7 +63,8 @@ void EmbreeIntersector::add(std::unique_ptr<Shape> shape)
     assert(tm);
     RTCGeometry geom = rtcNewGeometry(device, RTC_GEOMETRY_TYPE_TRIANGLE);
     float* vertices = (float*)rtcSetNewGeometryBuffer(geom,RTC_BUFFER_TYPE_VERTEX,0,RTC_FORMAT_FLOAT3,3*sizeof(float),tm->vertices.size());
-    //float* normals = (float*)rtcSetNewGeometryBuffer(geom,RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,0,RTC_FORMAT_FLOAT3,3*sizeof(float),tm->normals.size());
+    rtcSetGeometryVertexAttributeCount(geom,1);
+    float* normals = (float*)rtcSetNewGeometryBuffer(geom,RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE,0,RTC_FORMAT_FLOAT3,3*sizeof(float),tm->normals.size());
     unsigned int* indices = (unsigned int*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX,0,RTC_FORMAT_UINT3,3*sizeof(unsigned int), tm->indices.size());
 
     for (unsigned int i = 0; i < tm->vertices.size(); i++) {
@@ -72,14 +73,18 @@ void EmbreeIntersector::add(std::unique_ptr<Shape> shape)
         vertices[3*i+2] = tm->vertices[i].z;
     }
 
+    for (unsigned int i = 0; i < tm->normals.size(); i++) {
+        normals[3*i+0] = tm->normals[i].x;
+        normals[3*i+1] = tm->normals[i].y;
+        normals[3*i+2] = tm->normals[i].z;
+    }
+
     for (unsigned int i = 0; i < tm->indices.size(); i++) {
         indices[3*i+0] = tm->indices[i].x;
         indices[3*i+1] = tm->indices[i].y;
         indices[3*i+2] = tm->indices[i].z;
     }
 
-
-    // TODO: normals
     rtcSetGeometryUserData(geom, (void*)(size_t)tm->material);
 
     rtcCommitGeometry(geom);
@@ -117,9 +122,28 @@ std::optional<IntersectionData> EmbreeIntersector::intersects(Ray ray)
         IntersectionData inter;
         inter.t = rayhit.ray.tfar;
         inter.p = ray.at(inter.t);
-        inter.normal = glm::normalize(glm::vec3(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z));
         RTCGeometry geom = rtcGetGeometry(scene, rayhit.hit.geomID);
         inter.material = (MaterialID)(size_t)rtcGetGeometryUserData(geom);
+
+        float buf[4];
+        struct RTCInterpolateArguments interp;
+        interp.geometry = geom;
+        interp.primID = rayhit.hit.primID;
+        interp.u = rayhit.hit.u;
+        interp.v = rayhit.hit.v;
+        interp.bufferType = RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE;
+        interp.bufferSlot = 0;
+        interp.P = buf;
+        interp.dPdu = NULL;
+        interp.dPdv = NULL;
+        interp.ddPdudu = NULL;
+        interp.ddPdvdv = NULL;
+        interp.ddPdudv = NULL;
+        interp.valueCount = 3;
+        rtcInterpolate(&interp);
+
+        inter.normal = glm::normalize(glm::vec3(buf[0],buf[1],buf[2]));
+        //inter.normal = glm::normalize(glm::vec3(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z));
 
         return inter;
     } else {
