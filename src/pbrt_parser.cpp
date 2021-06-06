@@ -10,7 +10,6 @@
 std::unique_ptr<Material> convertMaterial(pbrt::Material::SP in_mat)
 {
     // TODO: handle textures
-    // TODO: don't leak memory
     if (in_mat->as<pbrt::MatteMaterial>()) {
         pbrt::MatteMaterial::SP matte = in_mat->as<pbrt::MatteMaterial>();
         return std::make_unique<DiffuseMaterial>(glm::vec3(matte->kd.x, matte->kd.y, matte->kd.z));
@@ -108,10 +107,8 @@ std::pair<World, Camera> parsePbrt(std::string path)
 
     pbrt::Camera::SP in_cam = scene->cameras[0];
     glm::vec3 cam_pos(in_cam->frame.p.x, in_cam->frame.p.y, in_cam->frame.p.z);
-    pbrt::vec3f target = in_cam->frame.p + in_cam->frame.l.vz;
-    glm::vec3 target_pos(target.x, target.y, target.z);
 
-    Camera cam(cam_pos, target_pos, in_cam->fov * M_PI / 180.f);
+    Camera cam(cam_pos, convertVec3(in_cam->frame.l.vx), convertVec3(in_cam->frame.l.vy), convertVec3(in_cam->frame.l.vz), in_cam->fov * M_PI / 180.f);
 
     return std::make_pair(std::move(world), std::move(cam));
 }
