@@ -13,9 +13,7 @@ find_package(OpenMP)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/pbrt-parser)
 
-option(EMBREE_ISPC_SUPPORT "" OFF)
-option(EMBREE_TASKING_SYSTEM "" INTERNAL)
-option(EMBREE_TUTORIALS "" OFF)
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/embree)
+set(embree_DIR "" CACHE PATH "Path to Embree")
+find_package(embree 3.0 REQUIRED)
 
 target_link_libraries(pathtracer PUBLIC OpenMP::OpenMP_CXX pbrtParser embree)

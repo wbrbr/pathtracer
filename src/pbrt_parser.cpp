@@ -32,7 +32,7 @@ std::pair<World, Camera> parsePbrt(std::string path)
 
     World world;
 
-    std::unique_ptr<BVHIntersector> intersector;
+    auto intersector = std::make_unique<BVHIntersector>();
 
     for (const pbrt::Shape::SP& shape : obj->shapes) {
         if (shape->as<pbrt::TriangleMesh>()) {
